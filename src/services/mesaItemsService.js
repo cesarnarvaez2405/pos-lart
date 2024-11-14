@@ -11,20 +11,9 @@ import {
  */
 
 export default {
-  async getMesaPorCaja(cajaId) {
+  async crearMesaItems(datos) {
     try {
-      const response = await axios.get(
-        `${API.node}/mesas/buscar-por-caja/${cajaId}`
-      );
-      return response.data;
-    } catch (error) {
-      alertErrorResponse(error);
-    }
-  },
-
-  async crearMesa(datos) {
-    try {
-      const response = await axios.post(`${API.node}/mesas`, datos);
+      const response = await axios.post(`${API.node}/mesa-item`, datos);
       alertSuccessReponse(response);
       return response.data;
     } catch (error) {
@@ -32,10 +21,18 @@ export default {
     }
   },
 
-  async editarMesa(id, datos) {
+  async eliminarMesaItem(id) {
     try {
-      const response = await axios.patch(`${API.node}/mesas/${id}`, datos);
-      alertSuccessReponse(response);
+      const response = await axios.delete(`${API.node}/mesa-item/${id}`);
+      return response.data;
+    } catch (error) {
+      alertErrorResponse(error);
+    }
+  },
+
+  async editarMesaItem(id, data) {
+    try {
+      const response = await axios.patch(`${API.node}/mesa-item/${id}`, data);
       return response.data;
     } catch (error) {
       alertErrorResponse(error);
