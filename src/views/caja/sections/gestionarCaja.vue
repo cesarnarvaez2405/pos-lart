@@ -1,8 +1,14 @@
 <template>
-  <div class="bg-slate-50 font-poppins">
-    <div class="py-10 px-10 grid grid-cols-3">
+  <div class="font-poppins h-screen">
+    <div class="py-10 px-10 grid grid-cols-3 border mb-10 shadow-md">
       <div>
         <h1 class="text-xl">Caja N-{{ idCaja }}</h1>
+        <div class="flex gap-3">
+          <p>Saldo actual:</p>
+          <p class="font-semibold text-green-500">
+            {{ formatCurrency(totalCarrito) }}
+          </p>
+        </div>
       </div>
 
       <div class="text-center">
@@ -11,7 +17,13 @@
       </div>
 
       <div class="flex justify-center items-center">
-        <Button class="ml-auto" label="Cerrar caja" severity="danger" rounded />
+        <Button
+          @click="confirmarCerrar()"
+          class="ml-auto"
+          label="Cerrar caja"
+          severity="danger"
+          rounded
+        />
       </div>
     </div>
 
@@ -72,13 +84,28 @@
           Creado: {{ formatDate(mesa.fechaCreacion) }}
         </p>
 
-        <div class="flex gap-2 pt-2">
+        <div class="flex gap-2 pt-2 items-center">
           <printer-icon class="size-5 cursor-pointer" />
           <pencil-square-icon
-            @click="abrirModalCrearModal(true, mesa)"
+            @click="abrirModalCrearModal(true, mesa, false)"
             class="size-5 cursor-pointer"
           />
+          <Button
+            @click="abrirModalCrearModal(true, mesa, true)"
+            v-if="mesa.estaAbierto"
+            class="ml-auto text-sm"
+            label="Cerrar mesa"
+            severity="danger"
+            raised
+            rounded
+          />
         </div>
+      </div>
+    </div>
+
+    <div class="h-screen" v-if="mesas.length <= 0">
+      <div class="h-1/4 flex justify-center items-center">
+        <h2>No hay mesas creadas para esta caja</h2>
       </div>
     </div>
 
@@ -92,11 +119,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, computed } from "vue";
 import { PrinterIcon, PencilSquareIcon } from "@heroicons/vue/24/outline";
 import mesaServices from "../../../services/mesaServices";
 import itemsServices from "../../../services/itemsServices";
 import crearMesa from "../components/crearMesa.vue";
+import Swal from "sweetalert2";
+import cajaServices from "../../../services/cajaServices";
 
 const currentTime = ref("");
 const currentDate = ref("");
@@ -109,6 +138,12 @@ const props = defineProps({
     type: Number,
     required: true,
   },
+});
+
+const emit = defineEmits(["get-cajas-abiertas"]);
+
+const totalCarrito = computed(() => {
+  return mesas.value.reduce((total, mesa) => total + parseFloat(mesa.saldo), 0);
 });
 
 const updateCurrentTime = () => {
@@ -144,8 +179,51 @@ const obtenerItems = async () => {
   items.value = await itemsServices.getItems();
 };
 
-const abrirModalCrearModal = (estaEditando, data) => {
-  crearMesaRef.value.abrirModal(estaEditando, data);
+const abrirModalCrearModal = (estaEditando, data, estaCerrando) => {
+  crearMesaRef.value.abrirModal(estaEditando, data, estaCerrando);
+};
+
+const confirmarCerrar = () => {
+  Swal.fire({
+    title: `¡Advertencia!`,
+    text: `¿Estás seguro de cerrar la caja ?`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#06B357",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Confirmar",
+    cancelButtonText: "Cancelar",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      await cerrarCaja();
+    }
+  });
+};
+
+const cerrarCaja = async () => {
+  let saldo = 0;
+  const tieneMesaAbierta = mesas.value.find((mesa) => mesa.estaAbierto == true);
+
+  if (tieneMesaAbierta) {
+    Swal.fire({
+      title: `¡Advertencia!`,
+      text: `No puedes cerrar la caja porque tienes mesas abiertas`,
+      icon: "error",
+    });
+    return;
+  }
+
+  mesas.value.map((mesa) => {
+    saldo += parseFloat(mesa.saldo);
+  });
+
+  await cajaServices.actualizarCaja(props.idCaja, {
+    estaAbierto: false,
+    totalCaja: saldo,
+    totalMesas: mesas.value.length,
+  });
+
+  emit("get-cajas-abiertas");
 };
 
 // Función para formatear fecha y hora de creación

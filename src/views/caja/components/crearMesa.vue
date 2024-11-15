@@ -8,30 +8,47 @@
     :closable="false"
   >
     <template #header>
-      <div class="inline-flex items-center justify-center gap-2">
+      <div
+        class="inline-flex items-center justify-center gap-2"
+        v-if="!estaCerrando"
+      >
         <h2 class="font-bold whitespace-nowrap text-xl" v-if="estaEditando">
           Editar mesa
         </h2>
         <h2 class="font-bold whitespace-nowrap text-xl" v-else>Crear mesa</h2>
       </div>
+
+      <div class="inline-flex items-center justify-center gap-2" v-else>
+        <h2 class="font-bold whitespace-nowrap text-xl">
+          Resumen de {{ referencia }}
+        </h2>
+      </div>
     </template>
 
-    <span class="text-surface-500 dark:text-surface-400 block mb-8"
+    <span
+      class="text-surface-500 dark:text-surface-400 block mb-8"
+      v-if="!estaCerrando"
       >Digite la siguiente informacion</span
     >
     <div class="flex items-center gap-4 mb-4">
-      <label for="username" class="font-semibold w-24">Mesa N°</label>
+      <label for="username" class="font-semibold w-24" v-if="!estaCerrando"
+        >Mesa N°</label
+      >
       <InputText
         id="referencia"
         v-model="referencia"
         class="flex-auto"
         autocomplete="off"
+        v-if="!estaCerrando"
       />
     </div>
 
     <div class="flex items-center gap-4 mb-2">
-      <label for="username" class="font-semibold w-24">Productos</label>
+      <label for="username" class="font-semibold w-24" v-if="!estaCerrando"
+        >Productos</label
+      >
       <Select
+        v-if="!estaCerrando"
         v-model="itemSelected"
         :options="items"
         filter
@@ -66,6 +83,7 @@
         </p>
         <p>Cantidad: {{ item.cantidad }}</p>
         <trash-icon
+          v-if="!estaCerrando"
           @click="eliminar(item)"
           class="mt-2 size-5 cursor-pointer"
         />
@@ -99,11 +117,21 @@
       />
 
       <Button
-        v-if="!isLoading"
+        v-if="!isLoading && !estaCerrando"
         :label="estaEditando ? 'Editar' : 'Guardar'"
         severity="success"
         :disabled="totalCarrito <= 0 && referencia.length <= 0"
         @click="estaEditando ? editar() : guardar()"
+        autofocus
+      />
+
+      <Button
+        v-if="estaCerrando"
+        label="Cerrar mesa"
+        severity="warn"
+        rounded
+        :disabled="totalCarrito <= 0 && referencia.length <= 0"
+        @click="cerrarMesa()"
         autofocus
       />
     </template>
@@ -127,6 +155,7 @@ const isLoading = ref(false);
 const estaEditando = ref(false);
 const idMesaAEditar = ref(null);
 const mesaEstaAbierta = ref(true);
+const estaCerrando = ref(false);
 
 const props = defineProps({
   items: {
@@ -152,12 +181,11 @@ const totalCarrito = computed(() => {
   );
 });
 
-const abrirModal = (editando, data) => {
+const abrirModal = (editando, data, estaCerrandoValue) => {
   visible.value = true;
   if (!editando) {
     return;
   }
-  console.log(data);
   mesaEstaAbierta.value = data.estaAbierto;
   idMesaAEditar.value = data.id;
   estaEditando.value = editando;
@@ -180,6 +208,10 @@ const abrirModal = (editando, data) => {
       cantidad: itemMesa.cantidad,
       estaGuardado: true,
     });
+  }
+
+  if (estaCerrandoValue) {
+    estaCerrando.value = estaCerrandoValue;
   }
 };
 
@@ -269,6 +301,16 @@ const editarMesaItem = async (id, data) => {
   await mesaItemsService.editarMesaItem(id, data);
 };
 
+const cerrarMesa = async () => {
+  isLoading.value = true;
+  await mesaServices.editarMesa(idMesaAEditar.value, {
+    estaAbierto: false,
+  });
+  isLoading.value = false;
+  cleanFilter();
+  emit("obtenerMesasPorCaja");
+};
+
 const cleanFilter = () => {
   visible.value = false;
   itemsAGuardar.value = [];
@@ -277,6 +319,7 @@ const cleanFilter = () => {
   estaEditando.value = false;
   itemsGuardados.value = [];
   isLoading.value = false;
+  estaCerrando.value = false;
 };
 
 const formatCurrency = (value) => {
