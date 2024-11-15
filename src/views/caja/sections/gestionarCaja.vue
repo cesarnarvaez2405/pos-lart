@@ -85,7 +85,6 @@
         </p>
 
         <div class="flex gap-2 pt-2 items-center">
-          <printer-icon class="size-5 cursor-pointer" />
           <pencil-square-icon
             @click="abrirModalCrearModal(true, mesa, false)"
             class="size-5 cursor-pointer"
