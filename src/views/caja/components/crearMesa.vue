@@ -108,9 +108,10 @@
       />
 
       <printer-icon
-      @click="imprimirFactura()"
-      class="mt-2 size-7 cursor-pointer" 
-      v-if="!isLoading && estaCerrando"/>
+        @click="imprimirFactura()"
+        class="mt-2 size-7 cursor-pointer"
+        v-if="!isLoading && estaCerrando"
+      />
 
       <Button
         label="Cancelar"
@@ -145,10 +146,15 @@
 
 <script setup>
 import { computed, ref, watch } from "vue";
-import { PlusIcon, MinusIcon, TrashIcon, PrinterIcon } from "@heroicons/vue/24/outline";
+import {
+  PlusIcon,
+  MinusIcon,
+  TrashIcon,
+  PrinterIcon,
+} from "@heroicons/vue/24/outline";
 import mesaServices from "../../../services/mesaServices";
 import mesaItemsService from "../../../services/mesaItemsService";
-import facturacionService from "../../../services/facturacionService"
+import facturacionService from "../../../services/facturacionService";
 import { onMounted } from "vue";
 
 const visible = ref(false);
@@ -241,7 +247,9 @@ const editar = async () => {
   const elementosEliminados = itemsGuardados.value.filter(
     (itemGuardado) =>
       !itemsAGuardar.value.some(
-        (itemAGuardar) => itemAGuardar.id === itemGuardado.id
+        (itemAGuardar) =>
+          itemAGuardar.id === itemGuardado.id &&
+          itemAGuardar.cantidad === itemGuardado.cantidad
       )
   );
 
@@ -312,24 +320,24 @@ const cerrarMesa = async () => {
   await mesaServices.editarMesa(idMesaAEditar.value, {
     estaAbierto: false,
   });
-  await imprimirFactura()
+  await imprimirFactura();
   isLoading.value = false;
   cleanFilter();
   emit("obtenerMesasPorCaja");
 };
 
-const imprimirFactura = async() => {
-    isLoading.value = true;
-  const fechaActual = updateCurrentDate()
+const imprimirFactura = async () => {
+  isLoading.value = true;
+  const fechaActual = updateCurrentDate();
   const data = {
     idMesa: idMesaAEditar.value,
     items: itemsAGuardar.value,
     totalItems: itemsAGuardar.value.length,
     fecha: fechaActual,
-  }
-  await facturacionService.getImprimirFactura(data)
-    isLoading.value = false;
-}
+  };
+  await facturacionService.getImprimirFactura(data);
+  isLoading.value = false;
+};
 
 const updateCurrentDate = () => {
   const now = new Date();

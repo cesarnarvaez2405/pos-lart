@@ -1,5 +1,5 @@
 <template>
-  <div class="font-poppins h-screen">
+  <div class="font-poppins">
     <div class="py-10 px-10 grid grid-cols-3 border mb-10 shadow-md">
       <div>
         <h1 class="text-xl">Caja N-{{ idCaja }}</h1>
@@ -139,7 +139,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["get-cajas-abiertas"]);
+const emit = defineEmits(["get-cajas-abiertas", "get-cajas"]);
 
 const totalCarrito = computed(() => {
   return mesas.value.reduce((total, mesa) => total + parseFloat(mesa.saldo), 0);
@@ -223,6 +223,7 @@ const cerrarCaja = async () => {
   });
 
   emit("get-cajas-abiertas");
+  emit("get-cajas");
 };
 
 // Función para formatear fecha y hora de creación

@@ -44,6 +44,8 @@
           </p>
         </div>
       </div>
+
+      <!-- <cajas-table :cajas="cajas" /> -->
     </div>
 
     <div>
@@ -51,6 +53,7 @@
         v-if="hayCajaAbierta"
         :idCaja="idCaja"
         @get-cajas-abiertas="getCajasAbiertas"
+        @get-cajas="getCajas"
       />
     </div>
   </div>
@@ -61,6 +64,7 @@ import { onMounted, ref } from "vue";
 import gestionarCaja from "./sections/gestionarCaja.vue";
 import cajaServices from "../../services/cajaServices";
 import Swal from "sweetalert2";
+import cajasTable from "./components/cajasTable.vue";
 
 const hayCajaAbierta = ref(false);
 const idCaja = ref(null);
