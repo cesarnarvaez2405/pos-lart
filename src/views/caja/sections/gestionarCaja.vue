@@ -1,10 +1,15 @@
 <template>
-  <div class="font-poppins">
+  <div
+    class="font-poppins h-screen"
+    :class="{
+      'bg-white': estaViendoHistorico,
+    }"
+  >
     <div class="py-10 px-10 grid grid-cols-3 border mb-10 shadow-md">
       <div>
         <h1 class="text-xl">Caja N-{{ idCaja }}</h1>
         <div class="flex gap-3">
-          <p>Saldo actual:</p>
+          <p>{{ estaViendoHistorico ? "Saldo total:" : "Saldo actual:" }}</p>
           <p class="font-semibold text-green-500">
             {{ formatCurrency(totalCarrito) }}
           </p>
@@ -18,6 +23,7 @@
 
       <div class="flex justify-center items-center">
         <Button
+          v-if="!estaViendoHistorico"
           @click="confirmarCerrar()"
           class="ml-auto"
           label="Cerrar caja"
@@ -29,10 +35,18 @@
 
     <div class="px-10">
       <Button
+        v-if="!estaViendoHistorico"
         @click="abrirModalCrearModal()"
         class="ml-auto"
         label="Abrir mesa"
         severity="sucess"
+        rounded
+      />
+      <Button
+        v-else
+        @click="volverDelHistorico()"
+        class="ml-auto bg-blue-950 border-0"
+        label="Volver"
         rounded
       />
     </div>
@@ -86,12 +100,13 @@
 
         <div class="flex gap-2 pt-2 items-center">
           <pencil-square-icon
+            v-if="mesa.estaAbierto && !estaViendoHistorico"
             @click="abrirModalCrearModal(true, mesa, false)"
             class="size-5 cursor-pointer"
           />
           <Button
             @click="abrirModalCrearModal(true, mesa, true)"
-            v-if="mesa.estaAbierto"
+            v-if="mesa.estaAbierto && !estaViendoHistorico"
             class="ml-auto text-sm"
             label="Cerrar mesa"
             severity="danger"
@@ -137,9 +152,13 @@ const props = defineProps({
     type: Number,
     required: true,
   },
+  estaViendoHistorico: {
+    type: Boolean,
+    required: true,
+  },
 });
 
-const emit = defineEmits(["get-cajas-abiertas", "get-cajas"]);
+const emit = defineEmits(["get-cajas-abiertas", "get-cajas", "volver"]);
 
 const totalCarrito = computed(() => {
   return mesas.value.reduce((total, mesa) => total + parseFloat(mesa.saldo), 0);
@@ -224,6 +243,10 @@ const cerrarCaja = async () => {
 
   emit("get-cajas-abiertas");
   emit("get-cajas");
+};
+
+const volverDelHistorico = () => {
+  emit("volver");
 };
 
 // Función para formatear fecha y hora de creación

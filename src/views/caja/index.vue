@@ -1,59 +1,42 @@
 <template>
   <div class="h-screen">
     <div
-      class="w-full flex justify-center bg-green-50 items-center py-5 font-poppins font-semibold text-3xl uppercase border"
+      v-if="!estaViendoHistorico"
+      class="w-full flex justify-center bg-green-50 items-center py-5 font-poppins font-semibold text-3xl border"
       :class="{
         'bg-red-50': !hayCajaAbierta,
       }"
     >
-      <h2>Caja - {{ hayCajaAbierta ? "Abierta" : "Cerrada" }}</h2>
+      <h2>
+        Caja -
+        {{ hayCajaAbierta ? "Abierta" : "Cerrada" }}
+      </h2>
     </div>
 
-    <div class="flex justify-center items-center">
-      <Button
-        v-if="!hayCajaAbierta"
-        @click="abirCaja()"
-        class="ml-auto mr-10 mt-10"
-        label="Abrir caja"
-        severity="success"
-        rounded
-      />
+    <div
+      v-else
+      class="w-full flex justify-center bg-blue-950 text-white items-center py-5 font-poppins font-semibold text-3xl border"
+    >
+      <h2>Historico de la caja {{ idCaja }}</h2>
     </div>
 
     <div v-if="!hayCajaAbierta">
-      <!-- Renderizamos las tarjetas -->
-      <div
-        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6 px-6"
-      >
-        <div
-          v-for="caja in cajas"
-          :key="caja.id"
-          class="bg-white shadow-md rounded-lg p-4 border border-gray-200"
-        >
-          <h3 class="text-lg font-semibold text-gray-800">
-            Referencia: {{ caja.referencias }}
-          </h3>
-          <p class="text-sm text-gray-600">
-            Fecha: {{ formatFecha(caja.fechaCreacion) }}
-          </p>
-          <p class="text-sm text-gray-600">
-            Total Mesas: {{ caja.totalMesas }}
-          </p>
-          <p class="text-sm text-gray-600 font-semibold">
-            Saldo Total: {{ formatCurrency(caja.totalCaja) }}
-          </p>
-        </div>
-      </div>
-
-      <!-- <cajas-table :cajas="cajas" /> -->
+      <cajas-table
+        :hayCajaAbierta="hayCajaAbierta"
+        :cajas="cajas"
+        @abirCaja="abirCaja"
+        @ver-historico="verHistoricoCaja"
+      />
     </div>
 
     <div>
       <gestionar-caja
         v-if="hayCajaAbierta"
         :idCaja="idCaja"
+        :estaViendoHistorico="estaViendoHistorico"
         @get-cajas-abiertas="getCajasAbiertas"
         @get-cajas="getCajas"
+        @volver="volverDelHistorico"
       />
     </div>
   </div>
@@ -70,6 +53,7 @@ const hayCajaAbierta = ref(false);
 const idCaja = ref(null);
 const referenciaCaja = ref(null);
 const cajas = ref([]);
+const estaViendoHistorico = ref(false);
 
 onMounted(async () => {
   await getCajasAbiertas();
@@ -116,6 +100,18 @@ const abirCaja = async () => {
     });
   }
   await getCajasAbiertas();
+};
+
+const verHistoricoCaja = (id) => {
+  idCaja.value = id;
+  estaViendoHistorico.value = true;
+  hayCajaAbierta.value = true;
+};
+
+const volverDelHistorico = () => {
+  idCaja.value = null;
+  estaViendoHistorico.value = false;
+  hayCajaAbierta.value = false;
 };
 
 // Función para formatear la fecha

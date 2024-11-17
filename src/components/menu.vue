@@ -1,6 +1,8 @@
 
 <template>
-  <div class="card font-poppins font-semibold shadow-md">
+  <div
+    class="card font-poppins font-semibold shadow-md border-b border-pink-300"
+  >
     <Menubar :model="items">
       <template #item="{ item, props, hasSubmenu }">
         <router-link
