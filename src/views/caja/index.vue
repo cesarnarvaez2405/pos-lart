@@ -1,23 +1,33 @@
 <template>
   <div class="h-screen">
-    <div
-      v-if="!estaViendoHistorico"
-      class="w-full flex justify-center bg-green-50 items-center py-5 font-poppins font-semibold text-3xl border"
-      :class="{
-        'bg-red-50': !hayCajaAbierta,
-      }"
-    >
-      <h2>
-        Caja -
-        {{ hayCajaAbierta ? "Abierta" : "Cerrada" }}
-      </h2>
+    <div class="font-poppins py-10 flex justify-between items-end px-20">
+      <div class="flex flex-col gap-3">
+        <h2 class="font-semibold text-2xl">¡Bienvenido L'art du chat!</h2>
+        <div class="flex flex-row">
+          <span class="text-sm">En este momento la caja se encuentra </span>
+          <span
+            class="text-sm pl-1 text-red-600"
+            :class="{
+              'text-green-600': hayCajaAbierta,
+            }"
+          >
+            {{ hayCajaAbierta ? "Abierta" : "Cerrada" }}
+          </span>
+        </div>
+      </div>
+
+      <div>
+        <div
+          class="bg-green-200 px-4 py-2 rounded-lg font flex gap-3 justify-center items-center"
+        >
+          <CalendarDaysIcon class="size-6" />
+          <h1>{{ currentDate }}, {{ currentTime }}</h1>
+        </div>
+      </div>
     </div>
 
-    <div
-      v-else
-      class="w-full flex justify-center bg-blue-950 text-white items-center py-5 font-poppins font-semibold text-3xl border"
-    >
-      <h2>Historico de la caja {{ idCaja }}</h2>
+    <div class="text-center">
+      <p></p>
     </div>
 
     <div v-if="!hayCajaAbierta">
@@ -43,7 +53,8 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, onUnmounted } from "vue";
+import { CalendarDaysIcon } from "@heroicons/vue/24/outline";
 import gestionarCaja from "./sections/gestionarCaja.vue";
 import cajaServices from "../../services/cajaServices";
 import Swal from "sweetalert2";
@@ -54,11 +65,26 @@ const idCaja = ref(null);
 const referenciaCaja = ref(null);
 const cajas = ref([]);
 const estaViendoHistorico = ref(false);
+const currentTime = ref("");
+const currentDate = ref("");
 
-onMounted(async () => {
-  await getCajasAbiertas();
-  await getCajas();
-});
+const updateCurrentTime = () => {
+  const now = new Date();
+  currentTime.value = now.toLocaleTimeString("es-ES", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+};
+
+const updateCurrentDate = () => {
+  const now = new Date();
+  currentDate.value = now.toLocaleDateString("es-ES", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
 
 const getCajas = async () => {
   cajas.value = await cajaServices.getCajas();
@@ -130,6 +156,20 @@ const formatCurrency = (value) => {
     currency: "COP",
   });
 };
+
+onMounted(async () => {
+  await getCajasAbiertas();
+  await getCajas();
+  // Llama a updateCurrentTime cada segundo
+  updateCurrentTime(); // Actualiza la hora inmediatamente
+  updateCurrentDate();
+  const interval = setInterval(updateCurrentTime, 1000);
+
+  // Limpia el intervalo al desmontar el componente
+  onUnmounted(() => {
+    clearInterval(interval);
+  });
+});
 </script>
 
 <style>

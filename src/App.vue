@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-pink-50">
+  <div class="bg-white">
     <main>
       <menuLart />
       <router-view />

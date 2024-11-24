@@ -32,7 +32,7 @@
         </template>
       </Column>
       <Column field="referencias" header="Referencia"></Column>
-      <Column field="totalCaja">
+      <Column field="totalCaja" header="Venta">
         <template #body="slotProps">
           {{ formatCurrency(slotProps.data.totalCaja) }}
         </template>

@@ -30,7 +30,7 @@
       v-if="!estaCerrando"
       >Digite la siguiente informacion</span
     >
-    <div class="flex items-center gap-4 mb-4">
+    <div class="flex items-center gap-4 mb-4" v-if="!estaCerrando">
       <label for="username" class="font-semibold w-24" v-if="!estaCerrando"
         >Mesa N°</label
       >
@@ -43,7 +43,7 @@
       />
     </div>
 
-    <div class="flex items-center gap-4 mb-2">
+    <div class="flex items-center gap-4 mb-2" v-if="!estaCerrando">
       <label for="username" class="font-semibold w-24" v-if="!estaCerrando"
         >Productos</label
       >
@@ -65,7 +65,7 @@
       </Select>
     </div>
 
-    <div class="w-full border mt-8 mb-4"></div>
+    <div class="w-full border mt-8 mb-4" v-if="!estaCerrando"></div>
 
     <div class="pb-4">
       <label class="font-semibold">Productos</label>
