@@ -104,61 +104,127 @@
           <div
             v-for="mesa in mesas"
             :key="mesa.id"
-            class="p-4 rounded-lg shadow-md flex flex-col justify-between"
-            :class="
-              mesa.estaAbierto
-                ? 'bg-green-100 font-semibold'
-                : 'bg-red-100 font-semibold'
-            "
+            class="p-4 rounded-lg shadow-md flex flex-col justify-between bg-gray-100"
           >
-            <div>
-              <!-- Referencia de la mesa -->
-              <h2 class="text-lg font-semibold">{{ mesa.referencias }}</h2>
-              <!-- Saldo -->
-              <div class="flex gap-2 text-center items-center">
-                <p>Subtotal:</p>
-                <p
-                  :class="
-                    mesa.estaAbierto
-                      ? 'text-red-500 text-lg font-bold'
-                      : 'text-lg font-bold  text-green-500'
-                  "
-                  class=""
-                >
-                  {{ formatCurrency(mesa.saldo) }}
-                </p>
+            <div class="flex flex-col gap-3">
+              <div class="flex gap-3">
+                <div class="bg-blue-950 px-4 py-2 rounded-lg flex items-center">
+                  <span class="font-poppins text-white">{{ mesa.id }}</span>
+                </div>
+
+                <div class="w-full flex justify-between">
+                  <div class="flex flex-col gap-2">
+                    <h2 class="font-poppins text-lg">
+                      {{ mesa.referencias }}
+                    </h2>
+                    <span
+                      v-if="!mesa.estaAbierto"
+                      class="text-sm font-quicksand"
+                    >
+                      Tipo de pago
+                    </span>
+                  </div>
+
+                  <div class="flex flex-col gap-2">
+                    <div
+                      class="py-1 px-2 rounded-lg text-center flex gap-2"
+                      :class="
+                        mesa.estaAbierto ? ' bg-green-300' : ' bg-red-300'
+                      "
+                    >
+                      <check-circle-icon
+                        v-if="mesa.estaAbierto"
+                        class="size-5"
+                      />
+                      <x-circle-icon v-else class="size-5" />
+                      <span class="text-sm">
+                        {{ mesa.estaAbierto ? "Abierto" : "Cerrrado" }}
+                      </span>
+                    </div>
+                    <span
+                      v-if="!mesa.estaAbierto"
+                      class="text-sm font-quicksand"
+                    >
+                      Tipo de pago
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex justify-end">
+                <span class="text-sm font-quicksand">{{
+                  formatDate(mesa.fechaCreacion)
+                }}</span>
               </div>
             </div>
-            <div>
-              <p
-                :class="
-                  mesa.estaAbierto
-                    ? 'text-green-500 font-semibold'
-                    : 'text-red-500 font-semibold'
-                "
-              >
-                {{ mesa.estaAbierto ? "Abierto" : "Cerrado" }}
-              </p>
+
+            <div class="border-b-2 mt-5"></div>
+
+            <!-- Mini Tabla -->
+            <table class="table-auto w-full text-left mt-5">
+              <thead>
+                <tr class="border-b text-sm font-normal text-gray-400">
+                  <th class="px-2 py-1">Item</th>
+                  <th class="px-2 py-1">Cant</th>
+                  <th class="px-2 py-1">Precio</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="item in mesa.mesaItems.slice(0, 3)"
+                  :key="item.id"
+                  class="border-b text-sm font-normal"
+                >
+                  <td class="px-2 py-1">{{ item.item.nombre }}</td>
+                  <td class="px-2 py-1">{{ item.cantidad }}</td>
+                  <td class="px-2 py-1">
+                    {{
+                      formatCurrency(
+                        item.cantidad *
+                          parseFloat(item.item.contabilidadItem.valorVenta)
+                      )
+                    }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Informativo de más ítems -->
+            <div
+              v-if="mesa.mesaItems.length > 3"
+              class="text-sm text-gray-500 -mt-3 text-center backdrop-blur-sm bg-white/30"
+            >
+              Y {{ mesa.mesaItems.length - 3 }} ítems más...
             </div>
 
-            <p class="text-sm text-gray-600">
-              Creado: {{ formatDate(mesa.fechaCreacion) }}
-            </p>
+            <div class="border-b-2 mt-1"></div>
 
-            <div class="flex gap-2 pt-2 items-center">
-              <pencil-square-icon
-                v-if="mesa.estaAbierto && !estaViendoHistorico"
-                @click="abrirModalCrearModal(true, mesa, false)"
-                class="size-5 cursor-pointer"
+            <div class="flex justify-between py-4">
+              <h2>Total</h2>
+              <h2>{{ formatCurrency(mesa.saldo) }}</h2>
+            </div>
+
+            <div class="w-full flex justify-center items-center gap-4">
+              <Button
+                v-if="!mesa.estaAbierto || estaViendoHistorico"
+                @click="abrirModalCrearModal(true, mesa, true, true)"
+                class="text-sm bg-yellow-200 text-yellow-900 border-yellow-300 shadow-lg w-full"
+                label="Ver detalle"
+                raised
               />
               <Button
-                @click="abrirModalCrearModal(true, mesa, true)"
                 v-if="mesa.estaAbierto && !estaViendoHistorico"
-                class="ml-auto text-sm"
-                label="Cerrar mesa"
-                severity="danger"
+                @click="abrirModalCrearModal(true, mesa, false, false)"
+                class="text-sm bg-yellow-200 text-yellow-900 border-yellow-300 shadow-lg w-1/2"
+                label="Editar mesa"
                 raised
-                rounded
+              />
+              <Button
+                @click="abrirModalCrearModal(true, mesa, true, false)"
+                v-if="mesa.estaAbierto && !estaViendoHistorico"
+                class="text-sm bg-red-200 text-red-900 border-red-300 shadow-lg w-1/2"
+                label="Cerrar mesa"
+                raised
               />
             </div>
           </div>
@@ -190,6 +256,8 @@ import {
   DocumentCheckIcon,
   ClipboardDocumentCheckIcon,
   CurrencyDollarIcon,
+  CheckCircleIcon,
+  XCircleIcon,
 } from "@heroicons/vue/24/outline";
 import mesaServices from "../../../services/mesaServices";
 import itemsServices from "../../../services/itemsServices";
@@ -267,8 +335,18 @@ const obtenerItems = async () => {
   items.value = await itemsServices.getItems();
 };
 
-const abrirModalCrearModal = (estaEditando, data, estaCerrando) => {
-  crearMesaRef.value.abrirModal(estaEditando, data, estaCerrando);
+const abrirModalCrearModal = (
+  estaEditando,
+  data,
+  estaCerrando,
+  estaViendoDetalle
+) => {
+  crearMesaRef.value.abrirModal(
+    estaEditando,
+    data,
+    estaCerrando,
+    estaViendoDetalle
+  );
 };
 
 const confirmarCerrar = () => {
@@ -329,7 +407,8 @@ const formatDate = (dateString) => {
     minute: "2-digit",
     second: "2-digit",
   };
-  return new Date(dateString).toLocaleString("es-ES", options);
+  options.timeZone = "UTC";
+  return new Date(dateString).toLocaleString("en-US", options);
 };
 
 onMounted(async () => {

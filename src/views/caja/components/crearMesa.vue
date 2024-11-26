@@ -56,6 +56,7 @@
         placeholder="Selecciona un producto"
         class="w-full"
         :key="selectKey"
+        :disabled="eliminoAlgunItem"
       >
         <template #value="slotProps">
           <div v-if="slotProps.value" class="flex items-center">
@@ -75,19 +76,59 @@
       <div
         v-for="(item, index) in itemsAGuardar"
         :key="index"
-        class="p-4 border rounded-lg shadow-lg"
+        class="p-4 border rounded-lg shadow-lg flex flex-col gap-2"
       >
-        <h3 class="text-xl font-semibold">{{ item.nombre }}</h3>
-        <p class="text-lg font-bold text-red-500">
-          {{ formatCurrency(item.valor) }}
-        </p>
-        <p>Cantidad: {{ item.cantidad }}</p>
-        <trash-icon
+        <div>
+          <h3 class="text-2xl font-semibold">{{ item.nombre }}</h3>
+          <p class="text-sm font-bold text-gray-400 mb-2">
+            {{ formatCurrency(item.valor) }}
+          </p>
+        </div>
+
+        <div v-if="!estaCerrando">
+          <InputNumber
+            v-model="item.cantidad"
+            inputId="horizontal-buttons"
+            showButtons
+            buttonLayout="horizontal"
+            :step="1"
+            fluid
+            :incrementButtonClass="' rounded-full border-0 ml-1 bg-green-300 text-black border-green-500  '"
+            :decrementButtonClass="' rounded-full border-0 mr-1 text-black bg-gray-300 border-red-500 '"
+            :inputClass="' py-1 border-0 text-center shadow-none'"
+            :min="1"
+          >
+            <template #incrementbuttonicon>
+              <plus-icon class="size-5" />
+            </template>
+            <template #decrementbuttonicon>
+              <minus-icon class="size-5" />
+            </template>
+          </InputNumber>
+        </div>
+
+        <div class="flex gap-2" v-else>
+          <span class="font-quicksand">Cantidad: </span>
+          <span class="font-semibold">{{ item.cantidad }}</span>
+        </div>
+
+        <Button
           v-if="!estaCerrando"
           @click="eliminar(item)"
-          class="mt-2 size-5 cursor-pointer"
+          class="text-sm bg-red-200 text-red-900 border-red-300 shadow-lg w-full font-poppins py-1"
+          label="Eliminar "
+          raised
         />
       </div>
+    </div>
+
+    <div v-if="eliminoAlgunItem">
+      <Message
+        class="mt-4 bg-yellow-200 text-yellow-900 border-yellow-300 shadow-lg text-sm"
+      >
+        ¡Si eliminó algún ítem, es obligatorio darle al botón de editar antes de
+        ingresar un nuevo ítem!</Message
+      >
     </div>
 
     <div class="pt-4">
@@ -110,34 +151,45 @@
       <printer-icon
         @click="imprimirFactura()"
         class="mt-2 size-7 cursor-pointer"
-        v-if="!isLoading && estaCerrando"
+        v-if="!isLoading && estaCerrando && !estaViendoDetalle"
       />
 
       <Button
         label="Cancelar"
         text
         severity="danger"
+        class="font-poppins"
         @click="cleanFilter()"
         autofocus
-        v-if="!isLoading"
+        v-if="!isLoading && !estaViendoDetalle"
       />
 
       <Button
-        v-if="!isLoading && !estaCerrando"
+        v-if="!isLoading && !estaCerrando && !estaViendoDetalle"
         :label="estaEditando ? 'Editar' : 'Guardar'"
-        severity="success"
+        class="bg-green-200 text-green-900 border-green-300 shadow-lg font-poppins"
         :disabled="totalCarrito <= 0 && referencia.length <= 0"
         @click="estaEditando ? editar() : guardar()"
         autofocus
       />
 
       <Button
-        v-if="!isLoading && estaCerrando"
+        v-if="!isLoading && estaCerrando && !estaViendoDetalle"
         label="Cerrar mesa"
-        severity="warn"
         rounded
+        class="bg-yellow-200 text-yellow-900 border-yellow-300 shadow-lg font-poppins"
         :disabled="totalCarrito <= 0 && referencia.length <= 0"
         @click="cerrarMesa()"
+        autofocus
+      />
+
+      <Button
+        v-if="estaViendoDetalle"
+        label="Salir"
+        class="bg-yellow-200 text-yellow-900 border-yellow-300 shadow-lg font-poppins"
+        rounded
+        :disabled="totalCarrito <= 0 && referencia.length <= 0"
+        @click="cleanFilter()"
         autofocus
       />
     </template>
@@ -168,6 +220,8 @@ const estaEditando = ref(false);
 const idMesaAEditar = ref(null);
 const mesaEstaAbierta = ref(true);
 const estaCerrando = ref(false);
+const estaViendoDetalle = ref(false);
+const eliminoAlgunItem = ref(false);
 
 const props = defineProps({
   items: {
@@ -193,11 +247,17 @@ const totalCarrito = computed(() => {
   );
 });
 
-const abrirModal = (editando, data, estaCerrandoValue) => {
+const abrirModal = (
+  editando,
+  data,
+  estaCerrandoValue,
+  estaViendoDetalleVal
+) => {
   visible.value = true;
   if (!editando) {
     return;
   }
+  estaViendoDetalle.value = estaViendoDetalleVal;
   mesaEstaAbierta.value = data.estaAbierto;
   idMesaAEditar.value = data.id;
   estaEditando.value = editando;
@@ -247,16 +307,16 @@ const editar = async () => {
   const elementosEliminados = itemsGuardados.value.filter(
     (itemGuardado) =>
       !itemsAGuardar.value.some(
-        (itemAGuardar) =>
-          itemAGuardar.id === itemGuardado.id &&
-          itemAGuardar.cantidad === itemGuardado.cantidad
+        (itemAGuardar) => itemAGuardar.id === itemGuardado.id
       )
   );
 
   const nuevosElementos = itemsAGuardar.value.filter(
     (itemGuardado) =>
       !itemsGuardados.value.some(
-        (itemAGuardar) => itemGuardado.idMesaItem === itemAGuardar.idMesaItem
+        (itemAGuardar) =>
+          itemGuardado.idMesaItem === itemAGuardar.idMesaItem ||
+          itemGuardado.id === itemAGuardar.id
       )
   );
 
@@ -287,6 +347,7 @@ const eliminar = async (itemMesa) => {
   );
 
   if (index !== -1) {
+    eliminoAlgunItem.value = true;
     itemsAGuardar.value.splice(index, 1);
   }
 };
@@ -357,6 +418,7 @@ const cleanFilter = () => {
   itemsGuardados.value = [];
   isLoading.value = false;
   estaCerrando.value = false;
+  eliminoAlgunItem.value = false;
 };
 
 const formatCurrency = (value) => {
