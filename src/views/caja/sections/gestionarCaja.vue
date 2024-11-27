@@ -28,9 +28,9 @@
             </div>
             <div>
               <h1 class="font-poppins font-semibold text-xl">
-                {{ totalMesasFacturadas }}
+                {{ mesas.length }}
               </h1>
-              <h2 class="font-poppins text-sm">Total mesas facturadas</h2>
+              <h2 class="font-poppins text-sm">Total mesas</h2>
             </div>
           </div>
         </div>
@@ -38,13 +38,13 @@
         <div class="border rounded-lg">
           <div class="px-3 py-2 flex justify-start items-center gap-5">
             <div class="flex bg-blue-950 px-2 py-1 rounded-lg">
-              <clipboard-document-check-icon class="size-9 text-white" />
+              <document-currency-dollar-icon class="size-9 text-white" />
             </div>
             <div>
               <h1 class="font-poppins font-semibold text-xl">
-                {{ mesas.length }}
+                {{ formatCurrency(totalFacturadoActual) }}
               </h1>
-              <h2 class="font-poppins text-sm">Total mesas</h2>
+              <h2 class="font-poppins text-sm">Total facturado actual</h2>
             </div>
           </div>
         </div>
@@ -58,7 +58,7 @@
               <h1 class="font-poppins font-semibold text-xl">
                 {{ formatCurrency(totalCarrito) }}
               </h1>
-              <h2 class="font-poppins text-sm">Total facturado</h2>
+              <h2 class="font-poppins text-sm">Total saldo esperado</h2>
             </div>
           </div>
         </div>
@@ -99,60 +99,56 @@
         </div>
 
         <div
-          class="px-10 py-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+          class="px-4 sm:px-6 md:px-8 lg:px-10 py-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4"
         >
           <div
             v-for="mesa in mesas"
             :key="mesa.id"
-            class="p-4 rounded-lg shadow-md flex flex-col justify-between bg-gray-100"
+            class="p-4 bg-gray-100 rounded-lg shadow-md flex flex-col justify-between"
           >
             <div class="flex flex-col gap-3">
-              <div class="flex gap-3">
-                <div class="bg-blue-950 px-4 py-2 rounded-lg flex items-center">
-                  <span class="font-poppins text-white">{{ mesa.id }}</span>
+              <div class="flex gap-3 items-center">
+                <div class="bg-blue-950 px-3 py-1 sm:px-4 sm:py-2 rounded-lg">
+                  <span
+                    class="font-poppins text-white text-xs sm:text-sm md:text-base"
+                  >
+                    {{ mesa.id }}
+                  </span>
                 </div>
 
-                <div class="w-full flex justify-between">
+                <div class="w-full flex justify-between items-center">
                   <div class="flex flex-col gap-2">
-                    <h2 class="font-poppins text-lg">
+                    <h2 class="font-poppins text-sm sm:text-base md:text-lg">
                       {{ mesa.referencias }}
                     </h2>
                     <span
                       v-if="!mesa.estaAbierto"
-                      class="text-sm font-quicksand"
+                      class="text-xs sm:text-sm font-quicksand"
                     >
-                      Tipo de pago
+                      Tipo de pago: {{ mesa.tipoPago.nombre }}
                     </span>
                   </div>
 
-                  <div class="flex flex-col gap-2">
+                  <div>
                     <div
-                      class="py-1 px-2 rounded-lg text-center flex gap-2"
-                      :class="
-                        mesa.estaAbierto ? ' bg-green-300' : ' bg-red-300'
-                      "
+                      class="py-1 px-2 rounded-lg flex gap-2 items-center"
+                      :class="mesa.estaAbierto ? 'bg-green-300' : 'bg-red-300'"
                     >
                       <check-circle-icon
                         v-if="mesa.estaAbierto"
-                        class="size-5"
+                        class="h-4 w-4 sm:h-5 sm:w-5"
                       />
-                      <x-circle-icon v-else class="size-5" />
-                      <span class="text-sm">
-                        {{ mesa.estaAbierto ? "Abierto" : "Cerrrado" }}
+                      <x-circle-icon v-else class="h-4 w-4 sm:h-5 sm:w-5" />
+                      <span class="text-xs sm:text-sm">
+                        {{ mesa.estaAbierto ? "Abierto" : "Cerrado" }}
                       </span>
                     </div>
-                    <span
-                      v-if="!mesa.estaAbierto"
-                      class="text-sm font-quicksand"
-                    >
-                      Tipo de pago
-                    </span>
                   </div>
                 </div>
               </div>
 
               <div class="flex justify-end">
-                <span class="text-sm font-quicksand">{{
+                <span class="text-xs sm:text-sm font-quicksand">{{
                   formatDate(mesa.fechaCreacion)
                 }}</span>
               </div>
@@ -161,68 +157,72 @@
             <div class="border-b-2 mt-5"></div>
 
             <!-- Mini Tabla -->
-            <table class="table-auto w-full text-left mt-5">
-              <thead>
-                <tr class="border-b text-sm font-normal text-gray-400">
-                  <th class="px-2 py-1">Item</th>
-                  <th class="px-2 py-1">Cant</th>
-                  <th class="px-2 py-1">Precio</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="item in mesa.mesaItems.slice(0, 3)"
-                  :key="item.id"
-                  class="border-b text-sm font-normal"
-                >
-                  <td class="px-2 py-1">{{ item.item.nombre }}</td>
-                  <td class="px-2 py-1">{{ item.cantidad }}</td>
-                  <td class="px-2 py-1">
-                    {{
-                      formatCurrency(
-                        item.cantidad *
-                          parseFloat(item.item.contabilidadItem.valorVenta)
-                      )
-                    }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <div class="overflow-x-auto">
+              <table class="table-auto w-full text-left mt-5">
+                <thead>
+                  <tr class="border-b text-xs sm:text-sm text-gray-400">
+                    <th class="px-2 py-1">Item</th>
+                    <th class="px-2 py-1">Cant</th>
+                    <th class="px-2 py-1">Precio</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="item in mesa.mesaItems.slice(0, 3)"
+                    :key="item.id"
+                    class="border-b text-xs sm:text-sm"
+                  >
+                    <td class="px-2 py-1">{{ item.item.nombre }}</td>
+                    <td class="px-2 py-1">{{ item.cantidad }}</td>
+                    <td class="px-2 py-1">
+                      {{
+                        formatCurrency(
+                          item.cantidad *
+                            parseFloat(item.item.contabilidadItem.valorVenta)
+                        )
+                      }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
             <!-- Informativo de más ítems -->
             <div
               v-if="mesa.mesaItems.length > 3"
-              class="text-sm text-gray-500 -mt-3 text-center backdrop-blur-sm bg-white/30"
+              class="text-xs sm:text-sm text-gray-500 mt-2 text-center"
             >
               Y {{ mesa.mesaItems.length - 3 }} ítems más...
             </div>
 
-            <div class="border-b-2 mt-1"></div>
+            <div class="border-b-2 mt-3"></div>
 
             <div class="flex justify-between py-4">
-              <h2>Total</h2>
-              <h2>{{ formatCurrency(mesa.saldo) }}</h2>
+              <h2 class="text-xs sm:text-sm md:text-base">Total</h2>
+              <h2 class="text-xs sm:text-sm md:text-base">
+                {{ formatCurrency(mesa.saldo) }}
+              </h2>
             </div>
 
-            <div class="w-full flex justify-center items-center gap-4">
+            <div class="flex justify-center items-center gap-2">
               <Button
                 v-if="!mesa.estaAbierto || estaViendoHistorico"
                 @click="abrirModalCrearModal(true, mesa, true, true)"
-                class="text-sm bg-yellow-200 text-yellow-900 border-yellow-300 shadow-lg w-full"
+                class="text-xs sm:text-sm bg-yellow-200 text-yellow-900 border-yellow-300 shadow-lg w-full"
                 label="Ver detalle"
                 raised
               />
               <Button
                 v-if="mesa.estaAbierto && !estaViendoHistorico"
                 @click="abrirModalCrearModal(true, mesa, false, false)"
-                class="text-sm bg-yellow-200 text-yellow-900 border-yellow-300 shadow-lg w-1/2"
+                class="text-xs sm:text-sm bg-yellow-200 text-yellow-900 border-yellow-300 shadow-lg w-1/2"
                 label="Editar mesa"
                 raised
               />
               <Button
                 @click="abrirModalCrearModal(true, mesa, true, false)"
                 v-if="mesa.estaAbierto && !estaViendoHistorico"
-                class="text-sm bg-red-200 text-red-900 border-red-300 shadow-lg w-1/2"
+                class="text-xs sm:text-sm bg-red-200 text-red-900 border-red-300 shadow-lg w-1/2"
                 label="Cerrar mesa"
                 raised
               />
@@ -258,6 +258,7 @@ import {
   CurrencyDollarIcon,
   CheckCircleIcon,
   XCircleIcon,
+  DocumentCurrencyDollarIcon,
 } from "@heroicons/vue/24/outline";
 import mesaServices from "../../../services/mesaServices";
 import itemsServices from "../../../services/itemsServices";
@@ -288,12 +289,13 @@ const totalCarrito = computed(() => {
   return mesas.value.reduce((total, mesa) => total + parseFloat(mesa.saldo), 0);
 });
 
-const totalMesasFacturadas = computed(() =>
-  mesas.value.reduce(
-    (contador, mesa) => contador + (!mesa.estaAbierto ? 1 : 0),
+const totalFacturadoActual = computed(() => {
+  const mesasAbiertas = mesas.value.filter((mesa) => !mesa.estaAbierto);
+  return mesasAbiertas.reduce(
+    (total, mesa) => total + parseFloat(mesa.saldo),
     0
-  )
-);
+  );
+});
 
 const totalMesasAbiertas = computed(() =>
   mesas.value.reduce(

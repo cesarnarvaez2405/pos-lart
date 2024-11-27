@@ -131,6 +131,20 @@
       >
     </div>
 
+    <div class="pt-4" v-if="estaCerrando && !estaViendoDetalle">
+      <label class="font-semibold">Tipo de pago</label>
+    </div>
+
+    <div class="pt-4" v-if="estaCerrando && !estaViendoDetalle">
+      <Select
+        v-model="tipoPago"
+        :options="tiposPagosData"
+        optionLabel="nombre"
+        placeholder="Seleccione el tipo de pago"
+        class="w-full md:w-56"
+      />
+    </div>
+
     <div class="pt-4">
       <label class="font-semibold">Total: </label>
       <p class="text-lg font-bold text-red-500">
@@ -178,7 +192,9 @@
         label="Cerrar mesa"
         rounded
         class="bg-yellow-200 text-yellow-900 border-yellow-300 shadow-lg font-poppins"
-        :disabled="totalCarrito <= 0 && referencia.length <= 0"
+        :disabled="
+          (totalCarrito <= 0 && referencia.length <= 0) || tipoPago == null
+        "
         @click="cerrarMesa()"
         autofocus
       />
@@ -207,7 +223,7 @@ import {
 import mesaServices from "../../../services/mesaServices";
 import mesaItemsService from "../../../services/mesaItemsService";
 import facturacionService from "../../../services/facturacionService";
-import { onMounted } from "vue";
+import tiposPagosServices from "../../../services/tiposPagosServices";
 
 const visible = ref(false);
 const itemSelected = ref(null);
@@ -222,6 +238,8 @@ const mesaEstaAbierta = ref(true);
 const estaCerrando = ref(false);
 const estaViendoDetalle = ref(false);
 const eliminoAlgunItem = ref(false);
+const tiposPagosData = ref([]);
+const tipoPago = ref(null);
 
 const props = defineProps({
   items: {
@@ -247,7 +265,7 @@ const totalCarrito = computed(() => {
   );
 });
 
-const abrirModal = (
+const abrirModal = async (
   editando,
   data,
   estaCerrandoValue,
@@ -284,6 +302,7 @@ const abrirModal = (
 
   if (estaCerrandoValue) {
     estaCerrando.value = estaCerrandoValue;
+    await obtenerTiposPagos();
   }
 };
 
@@ -379,6 +398,7 @@ const editarMesaItem = async (id, data) => {
 const cerrarMesa = async () => {
   isLoading.value = true;
   await mesaServices.editarMesa(idMesaAEditar.value, {
+    tipoPagoId: tipoPago.value.id,
     estaAbierto: false,
   });
   await imprimirFactura();
@@ -400,6 +420,10 @@ const imprimirFactura = async () => {
   isLoading.value = false;
 };
 
+const obtenerTiposPagos = async () => {
+  tiposPagosData.value = await tiposPagosServices.getTiposPagos();
+};
+
 const updateCurrentDate = () => {
   const now = new Date();
   return now.toLocaleDateString("es-ES", {
@@ -419,6 +443,9 @@ const cleanFilter = () => {
   isLoading.value = false;
   estaCerrando.value = false;
   eliminoAlgunItem.value = false;
+  tiposPagosData.value = [];
+  tipoPago.value = null;
+  estaViendoDetalle.value = false;
 };
 
 const formatCurrency = (value) => {

@@ -29,6 +29,18 @@
           <span v-if="hasSubmenu" class="pi pi-fw pi-angle-down" />
         </a>
       </template>
+
+      <template #end>
+        <div class="flex items-center gap-2">
+          <Avatar
+            label="V"
+            class="mr-2"
+            size="large"
+            style="background-color: #faa8d2; color: #2a1261"
+            shape="circle"
+          />
+        </div>
+      </template>
     </Menubar>
   </div>
 </template>
