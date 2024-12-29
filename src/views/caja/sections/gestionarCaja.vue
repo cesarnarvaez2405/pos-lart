@@ -67,7 +67,7 @@
 
     <div class="border-b"></div>
 
-    <div class="bg-gray-200 px-10 py-10 shadow-inner h-screen">
+    <div class="bg-gray-200 px-10 py-10 shadow-inner">
       <div class="bg-white py-5 rounded-lg shadow-lg">
         <div class="px-10 flex justify-between">
           <div>
@@ -125,7 +125,7 @@
                       v-if="!mesa.estaAbierto"
                       class="text-xs sm:text-sm font-quicksand"
                     >
-                      Tipo de pago: {{ mesa.tipoPago.nombre }}
+                      Tipo de pago: {{ mesa.contabilidadMesaId }}
                     </span>
                   </div>
 

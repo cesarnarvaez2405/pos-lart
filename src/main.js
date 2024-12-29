@@ -12,6 +12,8 @@ import Aura from "@primevue/themes/aura";
 import App from "./App.vue";
 import router from "./router/index";
 
+import "./utils/rulesVeeValidate";
+
 const app = createApp(App);
 const pinia = createPinia();
 

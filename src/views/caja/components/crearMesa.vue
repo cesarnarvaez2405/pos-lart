@@ -1,6 +1,6 @@
 
 <template>
-  <Dialog
+  <!-- <Dialog
     v-model:visible="visible"
     modal
     header="Edit Profile"
@@ -136,13 +136,7 @@
     </div>
 
     <div class="pt-4" v-if="estaCerrando && !estaViendoDetalle">
-      <Select
-        v-model="tipoPago"
-        :options="tiposPagosData"
-        optionLabel="nombre"
-        placeholder="Seleccione el tipo de pago"
-        class="w-full md:w-56"
-      />
+      <tipo-pago-form :tiposPagosData="tiposPagosData" />
     </div>
 
     <div class="pt-4">
@@ -209,7 +203,15 @@
         autofocus
       />
     </template>
-  </Dialog>
+  </Dialog> -->
+
+  <cerrar-mesas-modal
+    :visible="estaCerrando"
+    :referencia="referencia"
+    :itemsAGuardar="itemsAGuardar"
+    :estaViendoDetalle="estaViendoDetalle"
+    :totalCarrito="totalCarrito"
+  />
 </template>
 
 <script setup>
@@ -220,6 +222,8 @@ import {
   TrashIcon,
   PrinterIcon,
 } from "@heroicons/vue/24/outline";
+import cerrarMesasModal from "../modals/cerrarMesasModal.vue";
+import tipoPagoForm from "../forms/tipoPagoForm.vue";
 import mesaServices from "../../../services/mesaServices";
 import mesaItemsService from "../../../services/mesaItemsService";
 import facturacionService from "../../../services/facturacionService";
