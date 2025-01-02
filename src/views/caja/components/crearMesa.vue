@@ -206,16 +206,36 @@
   </Dialog> -->
 
   <cerrar-mesas-modal
-    :visible="estaCerrando"
+    ref="modalCerrarMesasRef"
     :referencia="referencia"
     :itemsAGuardar="itemsAGuardar"
     :estaViendoDetalle="estaViendoDetalle"
     :totalCarrito="totalCarrito"
+    :estaCerrando="estaCerrando"
+    :tiposPagosData="tiposPagosData"
+  />
+
+  <abrir-mesa-modal
+    ref="modalAbrirMesasRef"
+    :estaEditando="estaEditando"
+    :totalCarrito="totalCarrito"
+    :itemsAGuardar="itemsAGuardar"
+    :itemsGuardados="itemsGuardados"
+    :items="items"
+    :referencia="referencia"
+    :isLoading="isLoading"
+    :eliminoAlgunItem="eliminoAlgunItem"
+    @adicionar-cantidad="adicionarCantidad"
+    @agregar-item="agregarItem"
+    @eliminar-item="eliminar"
+    @guardar="guardar"
+    @editar="editar"
+    @clean-filter="cleanFilter"
   />
 </template>
 
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, ref } from "vue";
 import {
   PlusIcon,
   MinusIcon,
@@ -223,17 +243,18 @@ import {
   PrinterIcon,
 } from "@heroicons/vue/24/outline";
 import cerrarMesasModal from "../modals/cerrarMesasModal.vue";
-import tipoPagoForm from "../forms/tipoPagoForm.vue";
+import abrirMesaModal from "../modals/abrirMesaModal.vue";
 import mesaServices from "../../../services/mesaServices";
 import mesaItemsService from "../../../services/mesaItemsService";
 import facturacionService from "../../../services/facturacionService";
 import tiposPagosServices from "../../../services/tiposPagosServices";
 
-const visible = ref(false);
-const itemSelected = ref(null);
+const modalCerrarMesasRef = ref();
+const modalAbrirMesasRef = ref();
+
 const itemsGuardados = ref([]);
 const itemsAGuardar = ref([]);
-const selectKey = ref(1);
+
 const referencia = ref("");
 const isLoading = ref(false);
 const estaEditando = ref(false);
@@ -275,15 +296,18 @@ const abrirModal = async (
   estaCerrandoValue,
   estaViendoDetalleVal
 ) => {
-  visible.value = true;
-  if (!editando) {
+  if (editando == undefined) {
+    modalAbrirMesasRef.value.abrirModal();
     return;
   }
-  estaViendoDetalle.value = estaViendoDetalleVal;
-  mesaEstaAbierta.value = data.estaAbierto;
-  idMesaAEditar.value = data.id;
+
   estaEditando.value = editando;
+  estaViendoDetalle.value = estaViendoDetalleVal;
+  idMesaAEditar.value = data.id;
   referencia.value = data.referencias;
+
+  mesaEstaAbierta.value = data.estaAbierto;
+
   for (const itemMesa of data.mesaItems) {
     itemsAGuardar.value.push({
       idMesaItem: itemMesa.id,
@@ -304,16 +328,36 @@ const abrirModal = async (
     });
   }
 
+  if (estaEditando.value) {
+    modalAbrirMesasRef.value.abrirModal();
+    return;
+  }
+
   if (estaCerrandoValue) {
+    modalCerrarMesasRef.value.openModal();
     estaCerrando.value = estaCerrandoValue;
     await obtenerTiposPagos();
   }
 };
 
-const guardar = async () => {
+const adicionarCantidad = (index) => {
+  itemsAGuardar.value[index].cantidad += 1;
+};
+
+const agregarItem = (id, nombre, valor) => {
+  itemsAGuardar.value.push({
+    id,
+    nombre,
+    valor,
+    cantidad: 1,
+    estaGuardado: false,
+  });
+};
+
+const guardar = async (referenciaValue) => {
   isLoading.value = true;
   const mesa = await mesaServices.crearMesa({
-    referencias: `Mesa ${referencia.value}`,
+    referencias: `Mesa ${referenciaValue}`,
     estaAbierto: true,
     cajaId: props.idCaja,
     saldo: totalCarrito.value,
@@ -326,7 +370,7 @@ const guardar = async () => {
   emit("obtenerMesasPorCaja");
 };
 
-const editar = async () => {
+const editar = async (referencia) => {
   const elementosEliminados = itemsGuardados.value.filter(
     (itemGuardado) =>
       !itemsAGuardar.value.some(
@@ -359,7 +403,7 @@ const editar = async () => {
     }
   }
 
-  await editarMesa();
+  await editarMesa(referencia);
   cleanFilter();
   emit("obtenerMesasPorCaja");
 };
@@ -388,9 +432,9 @@ const crearMesaItem = async (data, mesa) => {
   });
 };
 
-const editarMesa = async () => {
+const editarMesa = async (referencia) => {
   await mesaServices.editarMesa(idMesaAEditar.value, {
-    referencias: referencia.value,
+    referencias: referencia,
     saldo: totalCarrito.value,
   });
 };
@@ -438,9 +482,18 @@ const updateCurrentDate = () => {
 };
 
 const cleanFilter = () => {
-  visible.value = false;
+  if (estaCerrando.value) {
+    modalCerrarMesasRef.value.cerrarModal();
+  }
+
+  if (
+    (!estaEditando.value && !estaCerrando.value) ||
+    estaEditando.value == true
+  ) {
+    modalAbrirMesasRef.value.cerrarModal();
+  }
+
   itemsAGuardar.value = [];
-  itemSelected.value = null;
   referencia.value = "";
   estaEditando.value = false;
   itemsGuardados.value = [];
@@ -451,38 +504,6 @@ const cleanFilter = () => {
   tipoPago.value = null;
   estaViendoDetalle.value = false;
 };
-
-const formatCurrency = (value) => {
-  return Number(value).toLocaleString("es-CO", {
-    style: "currency",
-    currency: "COP",
-  });
-};
-
-watch(itemSelected, (newValue, oldValue) => {
-  if (!newValue) {
-    return;
-  }
-
-  const index = itemsAGuardar.value.findIndex(
-    (item) => item.id === newValue.id
-  );
-
-  if (index !== -1) {
-    itemsAGuardar.value[index].cantidad += 1;
-  } else {
-    itemsAGuardar.value.push({
-      id: newValue.id,
-      nombre: newValue.nombre,
-      valor: newValue.contabilidadItem.valorVenta,
-      cantidad: 1,
-      estaGuardado: false,
-    });
-  }
-
-  itemSelected.value = null;
-  selectKey.value += 10;
-});
 
 defineExpose({
   abrirModal,

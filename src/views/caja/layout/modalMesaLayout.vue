@@ -3,7 +3,7 @@
     v-model:visible="visible"
     modal
     header="Edit Profile"
-    :style="{ width: '45rem' }"
+    :style="{ width: widthModal }"
     :closable="false"
   >
     <template #header>
@@ -24,19 +24,24 @@ import { ref, watch } from "vue";
 const visible = ref(false);
 
 const props = defineProps({
-  estaAbierto: {
-    type: Boolean,
+  widthModal: {
+    type: String,
+    default: "45rem",
     required: true,
-    default: false,
   },
 });
 
-watch(props.estaAbierto, (newValue, oldValue) => {
-  if (!newValue) {
-    return;
-  }
+const openModal = () => {
+  visible.value = true;
+};
 
-  visible.value = props.estaAbierto;
+const cerrarModal = () => {
+  visible.value = false;
+};
+
+defineExpose({
+  openModal,
+  cerrarModal,
 });
 </script>
 

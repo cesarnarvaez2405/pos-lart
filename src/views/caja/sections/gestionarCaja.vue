@@ -1,6 +1,6 @@
 <template>
   <div
-    class="font-poppins h-screen"
+    class="font-poppins"
     :class="{
       'bg-white': estaViendoHistorico,
     }"
@@ -67,7 +67,7 @@
 
     <div class="border-b"></div>
 
-    <div class="bg-gray-200 px-10 py-10 shadow-inner">
+    <div class="h-full bg-gray-200 px-10 py-10 shadow-inner">
       <div class="bg-white py-5 rounded-lg shadow-lg">
         <div class="px-10 flex justify-between">
           <div>
@@ -207,7 +207,7 @@
             <div class="flex justify-center items-center gap-2">
               <Button
                 v-if="!mesa.estaAbierto || estaViendoHistorico"
-                @click="abrirModalCrearModal(true, mesa, true, true)"
+                @click="abrirModalCrearModal(false, mesa, false, true)"
                 class="text-xs sm:text-sm bg-yellow-200 text-yellow-900 border-yellow-300 shadow-lg w-full"
                 label="Ver detalle"
                 raised
@@ -220,7 +220,7 @@
                 raised
               />
               <Button
-                @click="abrirModalCrearModal(true, mesa, true, false)"
+                @click="abrirModalCrearModal(false, mesa, true, false)"
                 v-if="mesa.estaAbierto && !estaViendoHistorico"
                 class="text-xs sm:text-sm bg-red-200 text-red-900 border-red-300 shadow-lg w-1/2"
                 label="Cerrar mesa"

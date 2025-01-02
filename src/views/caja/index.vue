@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen">
+  <div>
     <div class="font-poppins py-10 flex justify-between items-end px-20">
       <div class="flex flex-col gap-3">
         <h2 class="font-semibold text-2xl">¡Bienvenido L'art du chat!</h2>
