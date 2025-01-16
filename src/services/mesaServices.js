@@ -41,4 +41,13 @@ export default {
       alertErrorResponse(error);
     }
   },
+
+  async buscarPorId(id) {
+    try {
+      const response = await axios.get(`${API.node}/mesas/${id}`);
+      return response.data;
+    } catch (error) {
+      alertErrorResponse(error);
+    }
+  },
 };

@@ -1,5 +1,5 @@
 <template>
-  <Form v-slot="{ errors }">
+  <Form>
     <div class="flex flex-row gap-2">
       <div>
         <Select
@@ -15,27 +15,8 @@
       </div>
 
       <div class="flex gap-2">
-        <div class="flex flex-col">
-          <Field
-            name="valor"
-            placeholder="Valor"
-            type="text"
-            rules="required"
-            v-model="valorPago"
-            class="border h-full rounded-md p-1 font-poppins"
-            :class="{
-              'border-red-500': errors.valor,
-            }"
-          />
-        </div>
-        <div>
-          <Button
-            class="bg-blue-200 text-blue-900 border-blue-300 shadow-lg font-poppins"
-            rounded
-            autofocus
-          >
-            <plus-icon class="size-5" />
-          </Button>
+        <div class="flex flex-col bg-gray-300 px-4 justify-center rounded-md">
+          <h3 class="font-bold">{{ formatCurrency(valorPago) }}</h3>
         </div>
       </div>
     </div>
@@ -43,7 +24,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { ErrorMessage, Field, Form } from "vee-validate";
 import { PlusIcon } from "@heroicons/vue/24/outline";
 import errorAlert from "../../../components/errorAlert.vue";
@@ -56,6 +37,32 @@ const props = defineProps({
     type: Array,
     required: true,
   },
+  total: {
+    type: Number,
+    required: true,
+  },
+});
+
+const enviarDato = () => {
+  return {
+    tipoPago: tipoPago.value,
+    valorPago: valorPago.value,
+  };
+};
+
+const formatCurrency = (value) => {
+  return Number(value).toLocaleString("es-CO", {
+    style: "currency",
+    currency: "COP",
+  });
+};
+
+onMounted(() => {
+  valorPago.value = props.total;
+});
+
+defineExpose({
+  enviarDato,
 });
 </script>
 

@@ -38,4 +38,17 @@ export default {
       alertErrorResponse(error);
     }
   },
+
+  async dividirMesa(datos) {
+    try {
+      const response = await axios.post(
+        `${API.node}/mesa-item/dividir-mesa`,
+        datos
+      );
+      alertSuccessReponse(response);
+      return response.data;
+    } catch (error) {
+      alertErrorResponse(error);
+    }
+  },
 };

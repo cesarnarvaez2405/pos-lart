@@ -125,7 +125,7 @@
                       v-if="!mesa.estaAbierto"
                       class="text-xs sm:text-sm font-quicksand"
                     >
-                      Tipo de pago: {{ mesa.contabilidadMesaId }}
+                      Tipo de pago: {{ mesa.contabilidadMesa.tipoPago.nombre }}
                     </span>
                   </div>
 

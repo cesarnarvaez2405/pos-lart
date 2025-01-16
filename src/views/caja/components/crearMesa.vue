@@ -213,6 +213,12 @@
     :totalCarrito="totalCarrito"
     :estaCerrando="estaCerrando"
     :tiposPagosData="tiposPagosData"
+    :idMesa="idMesaAEditar"
+    :idCaja="idCaja"
+    :tipoPago="tipoPago"
+    @clean-filter="cleanFilter"
+    @abrir-mesa-dividida="obtenerDataMesa"
+    @cerrar-mesa="cerrarMesa"
   />
 
   <abrir-mesa-modal
@@ -248,6 +254,7 @@ import mesaServices from "../../../services/mesaServices";
 import mesaItemsService from "../../../services/mesaItemsService";
 import facturacionService from "../../../services/facturacionService";
 import tiposPagosServices from "../../../services/tiposPagosServices";
+import mesaContabilidadService from "../../../services/mesaContabilidadService";
 
 const modalCerrarMesasRef = ref();
 const modalAbrirMesasRef = ref();
@@ -258,13 +265,13 @@ const itemsAGuardar = ref([]);
 const referencia = ref("");
 const isLoading = ref(false);
 const estaEditando = ref(false);
-const idMesaAEditar = ref(null);
+const idMesaAEditar = ref(0);
 const mesaEstaAbierta = ref(true);
 const estaCerrando = ref(false);
 const estaViendoDetalle = ref(false);
 const eliminoAlgunItem = ref(false);
 const tiposPagosData = ref([]);
-const tipoPago = ref(null);
+const tipoPago = ref("");
 
 const props = defineProps({
   items: {
@@ -305,6 +312,7 @@ const abrirModal = async (
   estaViendoDetalle.value = estaViendoDetalleVal;
   idMesaAEditar.value = data.id;
   referencia.value = data.referencias;
+  tipoPago.value = data.contabilidadMesa?.tipoPago?.nombre;
 
   mesaEstaAbierta.value = data.estaAbierto;
 
@@ -337,6 +345,10 @@ const abrirModal = async (
     modalCerrarMesasRef.value.openModal();
     estaCerrando.value = estaCerrandoValue;
     await obtenerTiposPagos();
+  }
+
+  if (estaViendoDetalle.value) {
+    modalCerrarMesasRef.value.openModal();
   }
 };
 
@@ -443,16 +455,34 @@ const editarMesaItem = async (id, data) => {
   await mesaItemsService.editarMesaItem(id, data);
 };
 
-const cerrarMesa = async () => {
+const cerrarMesa = async (mesaContabilidadData) => {
   isLoading.value = true;
-  await mesaServices.editarMesa(idMesaAEditar.value, {
-    tipoPagoId: tipoPago.value.id,
-    estaAbierto: false,
+
+  const contabilidadMesa = await crearMesaContabilidad({
+    mesaId: mesaContabilidadData.idMesa,
+    tipoPagoId: mesaContabilidadData.tipoPago.id,
+    valor: mesaContabilidadData.valorPago,
   });
-  await imprimirFactura();
+
+  await mesaServices.editarMesa(idMesaAEditar.value, {
+    estaAbierto: false,
+    contabilidadMesaId: contabilidadMesa.id,
+  });
+
   isLoading.value = false;
   cleanFilter();
   emit("obtenerMesasPorCaja");
+  await imprimirFactura();
+};
+
+const crearMesaContabilidad = async (data) => {
+  return await mesaContabilidadService.crearMesaContabilidad(data);
+};
+
+const obtenerDataMesa = async (data) => {
+  emit("obtenerMesasPorCaja");
+  const mesaData = await mesaServices.buscarPorId(data.id);
+  await abrirModal(false, mesaData, true, false);
 };
 
 const imprimirFactura = async () => {
@@ -482,7 +512,7 @@ const updateCurrentDate = () => {
 };
 
 const cleanFilter = () => {
-  if (estaCerrando.value) {
+  if (estaCerrando.value || estaViendoDetalle.value) {
     modalCerrarMesasRef.value.cerrarModal();
   }
 
