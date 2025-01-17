@@ -1,63 +1,60 @@
 <template>
-  <div>
-    <div class="font-poppins py-10 flex justify-between items-end px-20">
-      <div class="flex flex-col gap-3">
-        <h2 class="font-semibold text-2xl">¡Bienvenido L'art du chat!</h2>
-        <div class="flex flex-row">
-          <span class="text-sm">En este momento la caja se encuentra </span>
-          <span
-            class="text-sm pl-1 text-red-600"
-            :class="{
-              'text-green-600': hayCajaAbierta,
-            }"
-          >
-            {{ hayCajaAbierta ? "Abierta" : "Cerrada" }}
-          </span>
-        </div>
+  <caja-layout>
+    <template v-slot:Titulo>
+      <h2 class="font-semibold text-2xl">¡Bienvenido L'art du chat!</h2>
+    </template>
+
+    <template v-slot:subtitulo>
+      <span class="text-sm">En este momento la caja se encuentra </span>
+      <span
+        class="text-sm pl-1 text-red-600"
+        :class="{
+          'text-green-600': hayCajaAbierta,
+        }"
+      >
+        {{ hayCajaAbierta ? "Abierta" : "Cerrada" }}
+      </span>
+    </template>
+
+    <template v-slot:watch>
+      <CalendarDaysIcon class="size-6" />
+      <h1>{{ currentDate }}, {{ currentTime }}</h1>
+    </template>
+
+    <template v-slot:cuerpo>
+      <div v-if="!hayCajaAbierta">
+        <cajas-table
+          :hayCajaAbierta="hayCajaAbierta"
+          :cajas="cajas"
+          :loading="loadingTable"
+          @abirCaja="abirCaja"
+          @ver-historico="verHistoricoCaja"
+          @obtener-caja="getCajas"
+        />
       </div>
 
       <div>
-        <div
-          class="bg-green-200 px-4 py-2 rounded-lg font flex gap-3 justify-center items-center"
-        >
-          <CalendarDaysIcon class="size-6" />
-          <h1>{{ currentDate }}, {{ currentTime }}</h1>
-        </div>
+        <gestionar-caja
+          v-if="hayCajaAbierta"
+          :idCaja="idCaja"
+          :estaViendoHistorico="estaViendoHistorico"
+          @get-cajas-abiertas="getCajasAbiertas"
+          @get-cajas="getCajas"
+          @volver="volverDelHistorico"
+        />
       </div>
-    </div>
-
-    <div class="text-center">
-      <p></p>
-    </div>
-
-    <div v-if="!hayCajaAbierta">
-      <cajas-table
-        :hayCajaAbierta="hayCajaAbierta"
-        :cajas="cajas"
-        @abirCaja="abirCaja"
-        @ver-historico="verHistoricoCaja"
-      />
-    </div>
-
-    <div>
-      <gestionar-caja
-        v-if="hayCajaAbierta"
-        :idCaja="idCaja"
-        :estaViendoHistorico="estaViendoHistorico"
-        @get-cajas-abiertas="getCajasAbiertas"
-        @get-cajas="getCajas"
-        @volver="volverDelHistorico"
-      />
-    </div>
-  </div>
+    </template>
+  </caja-layout>
 </template>
 
 <script setup>
 import { onMounted, ref, onUnmounted } from "vue";
+import Swal from "sweetalert2";
 import { CalendarDaysIcon } from "@heroicons/vue/24/outline";
+
+import cajaLayout from "./layout/cajaLayout.vue";
 import gestionarCaja from "./sections/gestionarCaja.vue";
 import cajaServices from "../../services/cajaServices";
-import Swal from "sweetalert2";
 import cajasTable from "./components/cajasTable.vue";
 
 const hayCajaAbierta = ref(false);
@@ -67,6 +64,7 @@ const cajas = ref([]);
 const estaViendoHistorico = ref(false);
 const currentTime = ref("");
 const currentDate = ref("");
+const loadingTable = ref(false);
 
 const updateCurrentTime = () => {
   const now = new Date();
@@ -86,8 +84,20 @@ const updateCurrentDate = () => {
   });
 };
 
-const getCajas = async () => {
-  cajas.value = await cajaServices.getCajas();
+const getCajas = async (filters) => {
+  loadingTable.value = true;
+  const fechaInicioQuery = filters.fechaInicio
+    ? `?fechaInicio=${filters.fechaInicio}`
+    : "";
+
+  const fechaFinalQuery = filters.fechaFin
+    ? `&fechaFin=${filters.fechaFin}`
+    : "";
+
+  const query = `${fechaInicioQuery}${fechaFinalQuery}`;
+
+  cajas.value = await cajaServices.getCajas(query);
+  loadingTable.value = false;
 };
 
 const getCajasAbiertas = async () => {
@@ -159,7 +169,7 @@ const formatCurrency = (value) => {
 
 onMounted(async () => {
   await getCajasAbiertas();
-  await getCajas();
+
   // Llama a updateCurrentTime cada segundo
   updateCurrentTime(); // Actualiza la hora inmediatamente
   updateCurrentDate();

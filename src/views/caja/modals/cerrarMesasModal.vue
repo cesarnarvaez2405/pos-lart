@@ -63,6 +63,14 @@
                 ¿Deseas dividir la cuenta?
               </button>
             </div>
+
+            <Message
+              v-if="noEsValidoCerrarCaja"
+              class="mt-4 bg-blue-200 text-blue-900 border-blue-300 shadow-lg text-sm"
+            >
+              Tienes que seleccionar algun tipo de pago para poder cerrar la
+              caja</Message
+            >
           </div>
         </div>
       </div>
@@ -104,7 +112,7 @@
         @click="cerrarMesa()"
       />
       <Button
-        v-else
+        v-if="quiereDividir && !estaViendoDetalle"
         label="Dividir"
         class="bg-yellow-200 text-yellow-900 border-yellow-300 shadow-lg font-poppins"
         autofocus
@@ -129,6 +137,7 @@ const quiereDividir = ref(false);
 const itemsMesa = ref([]);
 const editTableKey = ref(10);
 const tipoPagoFormRef = ref();
+const noEsValidoCerrarCaja = ref(false);
 const columns = ref([
   {
     field: "id",
@@ -225,6 +234,14 @@ const regresarPestaña = () => {
 
 const cerrarMesa = () => {
   const form = tipoPagoFormRef.value.enviarDato();
+
+  if (!form?.tipoPago) {
+    noEsValidoCerrarCaja.value = true;
+    return;
+  }
+
+  noEsValidoCerrarCaja.value = false;
+
   emit("cerrar-mesa", {
     ...form,
     idMesa: props.idMesa,

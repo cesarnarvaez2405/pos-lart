@@ -267,7 +267,7 @@ const cerrarMesa = async (mesaContabilidadData) => {
   isLoading.value = false;
   cleanFilter();
   emit("obtenerMesasPorCaja");
-  await imprimirFactura();
+  // await imprimirFactura();
 };
 
 const crearMesaContabilidad = async (data) => {

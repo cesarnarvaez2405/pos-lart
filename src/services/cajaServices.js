@@ -14,9 +14,9 @@ import { data } from "autoprefixer";
 let response = [];
 
 export default {
-  async getCajas() {
+  async getCajas(filters) {
     try {
-      const responses = await axios.get(`${API.node}/caja`);
+      const responses = await axios.get(`${API.node}/caja${filters}`);
       return responses.data;
     } catch (error) {
       alertErrorResponse(error);
