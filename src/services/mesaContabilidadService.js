@@ -19,4 +19,28 @@ export default {
       alertErrorResponse(error);
     }
   },
+
+  async crearMesaContabilidadMasivo(data) {
+    try {
+      const response = await axios.post(
+        `${API.node}/mesa-contabilidad/crear-masivo`,
+        data
+      );
+      return response.data;
+    } catch (error) {
+      alertErrorResponse(error);
+    }
+  },
+
+  async buscarPorIds(ids) {
+    try {
+      const response = await axios.post(
+        `${API.node}/mesa-contabilidad/buscar-por-ids`,
+        ids
+      );
+      return response.data;
+    } catch (error) {
+      alertErrorResponse(error);
+    }
+  },
 };

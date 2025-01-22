@@ -32,33 +32,71 @@
                   <div class="flex justify-center items-center">
                     <h3 class="font-bold">x {{ item.cantidad }}</h3>
                   </div>
+                  <div class="flex justify-center items-center">
+                    <h3 class="font-bold">
+                      {{ formatCurrency(item.valor * item.cantidad) }}
+                    </h3>
+                  </div>
                 </div>
               </div>
 
               <div class="border-t border-black pt-2">
-                <div class="flex justify-between pb-2">
-                  <h3 class="font-bold">Total</h3>
-                  <h3 class="font-bold">{{ formatCurrency(totalCarrito) }}</h3>
-                </div>
                 <div class="flex justify-between">
-                  <h3 class="font-bold">Tipo de pago</h3>
-                  <h3 class="font-bold">{{ tipoPago }}</h3>
+                  <h3 class="font-bold">Total</h3>
+                  <h3 class="font-bold bg-red-300 px-2 rounded-md">
+                    {{ formatCurrency(totalCarrito) }}
+                  </h3>
+                </div>
+              </div>
+              <div class="border-t border-black pt-2">
+                <div class="flex justify-between" v-if="estaViendoDetalle">
+                  <div class="flex justify-center items-center">
+                    <h3 class="font-bold">Tipo de pago</h3>
+                  </div>
+                  <div class="flex flex-col items-end justify-center font-bold">
+                    <h3 v-for="(tipoPago, index) in tiposPagos" :key="index">
+                      {{ tipoPago?.tipoPago.nombre }} -
+                      {{ formatCurrency(tipoPago.valor) }}
+                    </h3>
+                  </div>
+                </div>
+              </div>
+              <div class="border-t border-black pt-2">
+                <div class="flex justify-between">
+                  <h3 class="font-bold">Valor pagado</h3>
+                  <h3 class="font-bold bg-green-300 px-2 rounded-md">
+                    {{ formatCurrency(valorPagado) }}
+                  </h3>
                 </div>
               </div>
             </div>
           </div>
 
           <div class="flex flex-col gap-2" v-if="!estaViendoDetalle">
-            <div>
-              <h2 class="font-bold">Seleccione el tipo de pago</h2>
+            <h2 class="font-bold">Seleccione el tipo de pago</h2>
+            <div
+              v-for="(cant, index) in cantTiposPagos"
+              :key="index"
+              class="flex justify-start items-center gap-3"
+            >
               <tipo-pago-form
-                ref="tipoPagoFormRef"
+                :ref="(el) => (tipoPagoFormRefs[index] = el)"
                 :tiposPagosData="tiposPagosData"
-                :total="totalCarrito"
+                :total="totalCarrito - valorTotalACerrar"
+              />
+
+              <minus-circle-icon
+                class="size-5 text-red-600 cursor-pointer"
+                v-if="index !== 0"
+                @click="eliminaTipoPago()"
               />
             </div>
 
-            <div>
+            <div class="flex gap-3">
+              <button class="text-blue-600" @click="agregarTipoPago()">
+                ¿Deseas añadir otro tipo de pago?
+              </button>
+              <span>o</span>
               <button class="text-blue-600" @click="ingresarPestanaDividir()">
                 ¿Deseas dividir la cuenta?
               </button>
@@ -105,9 +143,10 @@
       />
 
       <Button
-        label="Cerrar Caja"
+        label="Cerrar Mesa"
         class="bg-orange-200 text-orange-900 border-orange-300 shadow-lg font-poppins"
         autofocus
+        :disabled="totalCarrito !== valorTotalACerrar"
         v-if="!quiereDividir && !estaViendoDetalle"
         @click="cerrarMesa()"
       />
@@ -123,8 +162,9 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import Swal from "sweetalert2";
+import { MinusCircleIcon } from "@heroicons/vue/24/outline";
 
 import modalMesaLayout from "../layout/modalMesaLayout.vue";
 import tipoPagoForm from "../forms/tipoPagoForm.vue";
@@ -136,8 +176,9 @@ const editTableRef = ref();
 const quiereDividir = ref(false);
 const itemsMesa = ref([]);
 const editTableKey = ref(10);
-const tipoPagoFormRef = ref();
+const tipoPagoFormRefs = ref([]);
 const noEsValidoCerrarCaja = ref(false);
+const cantTiposPagos = ref(1);
 const columns = ref([
   {
     field: "id",
@@ -200,9 +241,9 @@ const props = defineProps({
     required: true,
   },
 
-  tipoPago: {
-    type: String,
-    default: "",
+  tiposPagos: {
+    type: Array,
+    default: [],
   },
 });
 
@@ -212,6 +253,29 @@ const emit = defineEmits([
   "cerrar-mesa",
 ]);
 
+const valorTotalACerrar = computed(() => {
+  const tipoPagosValues = [];
+  tipoPagoFormRefs.value.forEach((ref) => {
+    if (ref) {
+      const form = ref.enviarDato();
+      tipoPagosValues.push(form);
+    }
+  });
+
+  return tipoPagosValues.reduce(
+    (total, tipoPago) => total + parseFloat(tipoPago.valorPago),
+    0
+  );
+});
+
+const valorPagado = computed(() => {
+  let valorPagado = 0;
+  props.tiposPagos.forEach((tipoPago) => {
+    valorPagado += tipoPago.valor;
+  });
+  return valorPagado;
+});
+
 const openModal = () => {
   modalLayoutRef.value.openModal();
   itemsMesa.value = JSON.parse(JSON.stringify(props.itemsAGuardar));
@@ -220,6 +284,8 @@ const openModal = () => {
 const cerrarModal = () => {
   modalLayoutRef.value.cerrarModal();
   quiereDividir.value = false;
+  cantTiposPagos.value = 1;
+  tipoPagoFormRefs.value = [];
 };
 
 const ingresarPestanaDividir = () => {
@@ -233,17 +299,31 @@ const regresarPestaña = () => {
 };
 
 const cerrarMesa = () => {
-  const form = tipoPagoFormRef.value.enviarDato();
+  const tipoPagoValues = [];
 
-  if (!form?.tipoPago) {
-    noEsValidoCerrarCaja.value = true;
-    return;
+  tipoPagoFormRefs.value.forEach((ref) => {
+    if (ref) {
+      const form = ref.enviarDato();
+      tipoPagoValues.push(form);
+    }
+  });
+
+  for (const tipoPago of tipoPagoValues) {
+    if (!tipoPago?.tipoPago) {
+      noEsValidoCerrarCaja.value = true;
+      return;
+    }
+
+    if (!tipoPago?.valorPago > 0) {
+      noEsValidoCerrarCaja.value = true;
+      return;
+    }
   }
 
   noEsValidoCerrarCaja.value = false;
 
   emit("cerrar-mesa", {
-    ...form,
+    tipoPagoValues,
     idMesa: props.idMesa,
   });
 };
@@ -344,6 +424,14 @@ const dividirMesa = async () => {
 
 const abrirMesaDividida = (data) => {
   emit("abrir-mesa-dividida", data);
+};
+
+const agregarTipoPago = () => {
+  cantTiposPagos.value++;
+};
+
+const eliminaTipoPago = () => {
+  cantTiposPagos.value--;
 };
 
 const validarCantidadItems = (itemsADividir, itemsAGuardar) => {

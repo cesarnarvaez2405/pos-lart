@@ -117,16 +117,20 @@
                 </div>
 
                 <div class="w-full flex justify-between items-center">
-                  <div class="flex flex-col gap-2">
+                  <div class="flex flex-col">
                     <h2 class="font-poppins text-sm sm:text-base md:text-lg">
                       {{ mesa.referencias }}
                     </h2>
-                    <span
-                      v-if="!mesa.estaAbierto"
-                      class="text-xs sm:text-sm font-quicksand"
-                    >
-                      Tipo de pago: {{ mesa.contabilidadMesa.tipoPago.nombre }}
-                    </span>
+
+                    <div v-if="!mesa.estaAbierto">
+                      <span
+                        v-for="(tipoPago, index) in mesa.tipoPagos"
+                        :key="index"
+                        class="pl-1 text-xs sm:text-sm font-quicksand"
+                      >
+                        {{ `${tipoPago?.tipoPago?.nombre}, ` }}
+                      </span>
+                    </div>
                   </div>
 
                   <div>
@@ -265,6 +269,7 @@ import itemsServices from "../../../services/itemsServices";
 import crearMesa from "../components/crearMesa.vue";
 import Swal from "sweetalert2";
 import cajaServices from "../../../services/cajaServices";
+import mesaContabilidadService from "../../../services/mesaContabilidadService";
 
 const currentTime = ref("");
 const currentDate = ref("");
@@ -330,7 +335,26 @@ const formatCurrency = (value) => {
 };
 
 const obtenerMesasPorCaja = async () => {
-  mesas.value = await mesaServices.getMesaPorCaja(props.idCaja);
+  const todasMesas = await mesaServices.getMesaPorCaja(props.idCaja);
+
+  const mesasIds = todasMesas.map((mesa) => {
+    return mesa.id;
+  });
+
+  const mesasContabilidad = await mesaContabilidadService.buscarPorIds(
+    mesasIds
+  );
+
+  mesas.value = todasMesas.map((mesa) => {
+    const pagosRelacionados = mesasContabilidad.filter(
+      (pago) => pago.mesaId === mesa.id
+    );
+
+    return {
+      ...mesa,
+      tipoPagos: pagosRelacionados,
+    };
+  });
 };
 
 const obtenerItems = async () => {

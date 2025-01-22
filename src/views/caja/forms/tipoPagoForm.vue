@@ -15,8 +15,8 @@
       </div>
 
       <div class="flex gap-2">
-        <div class="flex flex-col bg-gray-300 px-4 justify-center rounded-md">
-          <h3 class="font-bold">{{ formatCurrency(valorPago) }}</h3>
+        <div class="flex flex-col justify-center">
+          <InputNumber v-model="valorPago" inputId="integeronly" fluid />
         </div>
       </div>
     </div>
@@ -51,7 +51,7 @@ const enviarDato = () => {
 };
 
 const formatCurrency = (value) => {
-  return Number(value).toLocaleString("es-CO", {
+  valorPago.value = Number(value).toLocaleString("es-CO", {
     style: "currency",
     currency: "COP",
   });

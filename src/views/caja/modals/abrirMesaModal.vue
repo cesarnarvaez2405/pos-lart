@@ -2,7 +2,9 @@
   <modal-mesa-layout ref="modalLayoutRef" :widthModal="'45rem'">
     <template v-slot:titulo>
       <div class="inline-flex items-center justify-center gap-2">
-        <h2 class="font-bold whitespace-nowrap text-xl">Crear mesa</h2>
+        <h2 class="font-bold whitespace-nowrap text-xl">
+          {{ estaEditando ? "Editar mesa" : "Crear mesa" }}
+        </h2>
       </div>
     </template>
 

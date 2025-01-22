@@ -10,7 +10,7 @@
     :tiposPagosData="tiposPagosData"
     :idMesa="idMesaAEditar"
     :idCaja="idCaja"
-    :tipoPago="tipoPago"
+    :tiposPagos="tipoPago"
     @clean-filter="cleanFilter"
     @abrir-mesa-dividida="obtenerDataMesa"
     @cerrar-mesa="cerrarMesa"
@@ -66,7 +66,7 @@ const estaCerrando = ref(false);
 const estaViendoDetalle = ref(false);
 const eliminoAlgunItem = ref(false);
 const tiposPagosData = ref([]);
-const tipoPago = ref("");
+const tipoPago = ref([]);
 
 const props = defineProps({
   items: {
@@ -107,7 +107,7 @@ const abrirModal = async (
   estaViendoDetalle.value = estaViendoDetalleVal;
   idMesaAEditar.value = data.id;
   referencia.value = data.referencias;
-  tipoPago.value = data.contabilidadMesa?.tipoPago?.nombre;
+  tipoPago.value = data.tipoPagos;
 
   mesaEstaAbierta.value = data.estaAbierto;
 
@@ -253,15 +253,20 @@ const editarMesaItem = async (id, data) => {
 const cerrarMesa = async (mesaContabilidadData) => {
   isLoading.value = true;
 
-  const contabilidadMesa = await crearMesaContabilidad({
-    mesaId: mesaContabilidadData.idMesa,
-    tipoPagoId: mesaContabilidadData.tipoPago.id,
-    valor: mesaContabilidadData.valorPago,
-  });
+  const mesaContabilidadValue = [];
+
+  for (const tipoPago of mesaContabilidadData.tipoPagoValues) {
+    mesaContabilidadValue.push({
+      mesaId: mesaContabilidadData.idMesa,
+      tipoPagoId: tipoPago.tipoPago.id,
+      valor: tipoPago.valorPago,
+    });
+  }
+
+  await crearMesaContabilidadMasivo(mesaContabilidadValue);
 
   await mesaServices.editarMesa(idMesaAEditar.value, {
     estaAbierto: false,
-    contabilidadMesaId: contabilidadMesa.id,
   });
 
   isLoading.value = false;
@@ -272,6 +277,10 @@ const cerrarMesa = async (mesaContabilidadData) => {
 
 const crearMesaContabilidad = async (data) => {
   return await mesaContabilidadService.crearMesaContabilidad(data);
+};
+
+const crearMesaContabilidadMasivo = async (data) => {
+  return await mesaContabilidadService.crearMesaContabilidadMasivo(data);
 };
 
 const obtenerDataMesa = async (data) => {
