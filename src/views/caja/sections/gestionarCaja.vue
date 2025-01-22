@@ -337,6 +337,12 @@ const formatCurrency = (value) => {
 const obtenerMesasPorCaja = async () => {
   const todasMesas = await mesaServices.getMesaPorCaja(props.idCaja);
 
+  console.log(todasMesas)
+
+  if(todasMesas.length <= 0){
+    return;
+  }
+  
   const mesasIds = todasMesas.map((mesa) => {
     return mesa.id;
   });
