@@ -90,7 +90,7 @@
           <div>
             <Button
               v-if="!estaViendoHistorico"
-              @click="confirmarCerrar()"
+              @click="abrirModalCerrarCaja()"
               class="ml-auto bg-red-200 border-red-300 text-red-900 shadow-lg"
               label="Cerrar caja"
               rounded
@@ -248,6 +248,14 @@
       @obtenerMesasPorCaja="obtenerMesasPorCaja"
       ref="crearMesaRef"
     />
+
+    <cerrar-caja-detalle
+      ref="cerrarCajaRef"
+      :totalMesas="mesas.length"
+      :diaActual="diaActual"
+      :totalFacturado="totalFacturadoActual"
+      @cerrar-caja="confirmarCerrar()"
+    />
   </div>
 </template>
 
@@ -270,12 +278,14 @@ import crearMesa from "../components/crearMesa.vue";
 import Swal from "sweetalert2";
 import cajaServices from "../../../services/cajaServices";
 import mesaContabilidadService from "../../../services/mesaContabilidadService";
+import cerrarCajaDetalle from "../modals/cerrarCajaDetalle.vue";
 
 const currentTime = ref("");
 const currentDate = ref("");
 const mesas = ref([]);
 const items = ref([]);
 const crearMesaRef = ref(null);
+const cerrarCajaRef = ref();
 
 const props = defineProps({
   idCaja: {
@@ -285,6 +295,10 @@ const props = defineProps({
   estaViendoHistorico: {
     type: Boolean,
     required: true,
+  },
+  diaActual: {
+    type: String,
+    default: "",
   },
 });
 
@@ -373,6 +387,10 @@ const abrirModalCrearModal = (
     estaCerrando,
     estaViendoDetalle
   );
+};
+
+const abrirModalCerrarCaja = () => {
+  cerrarCajaRef.value.abrirModal(mesas.value);
 };
 
 const confirmarCerrar = () => {

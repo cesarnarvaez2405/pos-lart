@@ -38,6 +38,7 @@
           v-if="hayCajaAbierta"
           :idCaja="idCaja"
           :estaViendoHistorico="estaViendoHistorico"
+          :diaActual="currentDate"
           @get-cajas-abiertas="getCajasAbiertas"
           @get-cajas="getCajas"
           @volver="volverDelHistorico"
