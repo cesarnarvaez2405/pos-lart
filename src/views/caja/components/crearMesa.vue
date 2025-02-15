@@ -268,11 +268,10 @@ const cerrarMesa = async (mesaContabilidadData) => {
   await mesaServices.editarMesa(idMesaAEditar.value, {
     estaAbierto: false,
   });
-
+  await imprimirFactura();
   isLoading.value = false;
   cleanFilter();
   emit("obtenerMesasPorCaja");
-  await imprimirFactura();
 };
 
 const crearMesaContabilidad = async (data) => {
@@ -298,6 +297,7 @@ const imprimirFactura = async () => {
     totalItems: itemsAGuardar.value.length,
     fecha: fechaActual,
   };
+  console.log(data);
   await facturacionService.getImprimirFactura(data);
   isLoading.value = false;
 };

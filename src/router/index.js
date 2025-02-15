@@ -1,10 +1,19 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { estaAutenticado } from "../utils/utilsAuth";
 
 const routes = [
   {
     path: "/",
     name: "inicio",
     component: () => import("../views/introduccion/index.vue"),
+    meta: {
+      requireAuth: false,
+    },
+  },
+  {
+    path: "/auth/login",
+    name: "login",
+    component: () => import("../views/auth/login.vue"),
     meta: {
       requireAuth: false,
     },
@@ -26,6 +35,14 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+router.beforeEach((to, from, next) => {
+  if (to.meta.requireAuth && !estaAutenticado()) {
+    next({ name: "login" });
+  } else {
+    next();
+  }
 });
 
 export default router;
