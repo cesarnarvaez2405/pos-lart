@@ -2,13 +2,13 @@
   <login-layout>
     <template v-slot:firstPage>
       <div
-        class="bg-fixed bg-cover bg-center flex flex-col justify-center items-center imagenLogin h-screen"
+        class="bg-fixed bg-cover bg-center justify-center items-center imagenLogin sm:h-full xl:h-screen"
       ></div>
     </template>
 
     <template v-slot:secondPage>
       <div
-        class="w-full px-10 py-40 flex flex-col justify-center items-center shadow-gray-600 gap-4 font-quicksand"
+        class="w-full px-10 py-20 2xl:py-40 flex flex-col justify-center items-center shadow-gray-600 gap-4 font-quicksand"
       >
         <img
           src="https://www.vibraniumco.com/logo_lart.png"
@@ -46,7 +46,7 @@
                 placeholder="Password"
                 class="w-full text-black border-b-2 border-black p-2 focus:bg-gray-100 focus:outline-none focus:ring-1 transition ease-in-out duration-150"
                 type="password"
-                rules="required|max-8"
+                rules="required"
                 v-model="form.password"
                 :class="{
                   ' border-b-red-600 ': errors.password,
@@ -77,6 +77,7 @@ import { UserCircleIcon } from "@heroicons/vue/24/outline";
 import loginLayout from "./layouts/loginLayout.vue";
 import errorAlert from "../../components/errorAlert.vue";
 import { useAuthStore } from "../../store/auth";
+import router from "../../router/index";
 
 const store = useAuthStore();
 const form = reactive({

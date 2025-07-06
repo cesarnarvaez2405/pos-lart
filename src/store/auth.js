@@ -7,6 +7,7 @@ export const useAuthStore = defineStore("useAuth", {
       estado: "Checking",
       rol: "",
       time: "",
+      nombre: "",
     };
   },
 
@@ -19,6 +20,7 @@ export const useAuthStore = defineStore("useAuth", {
       localStorage.setItem("token", response.token);
       this.rol = response.payload.rol;
       this.time = response.payload.time;
+      this.nombre = response.payload.nombre;
       this.estado = "inLogin";
       return response;
     },
@@ -32,6 +34,7 @@ export const useAuthStore = defineStore("useAuth", {
 
       try {
         const usuarioLogeado = await authService.buscarUsuarioLogueado();
+        this.nombre = usuarioLogeado.nombre;
         this.rol = usuarioLogeado.rol;
         this.estado = "inLogin";
       } catch (error) {

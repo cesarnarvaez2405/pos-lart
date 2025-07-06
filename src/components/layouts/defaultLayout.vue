@@ -9,9 +9,7 @@
       </div>
 
       <div>
-        <div
-          class="bg-green-200 px-4 py-2 rounded-lg font flex gap-3 justify-center items-center"
-        >
+        <div class="px-4 py-2 rounded-lg font flex gap-3">
           <slot name="watch"></slot>
         </div>
       </div>
@@ -22,9 +20,9 @@
     </div>
   </div>
 </template>
-
-<script setup>
+  
+  <script setup>
 </script>
-
-<style>
+  
+  <style>
 </style>

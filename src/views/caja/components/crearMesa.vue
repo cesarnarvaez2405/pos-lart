@@ -297,7 +297,6 @@ const imprimirFactura = async () => {
     totalItems: itemsAGuardar.value.length,
     fecha: fechaActual,
   };
-  console.log(data);
   await facturacionService.getImprimirFactura(data);
   isLoading.value = false;
 };

@@ -1,7 +1,7 @@
 <template>
-  <caja-layout>
+  <default-layout>
     <template v-slot:Titulo>
-      <h2 class="font-semibold text-2xl">¡Bienvenido L'art du chat!</h2>
+      <h2 class="font-semibold text-2xl">Modulo de caja</h2>
     </template>
 
     <template v-slot:subtitulo>
@@ -17,8 +17,10 @@
     </template>
 
     <template v-slot:watch>
-      <CalendarDaysIcon class="size-6" />
-      <h1>{{ currentDate }}, {{ currentTime }}</h1>
+      <div class="bg-green-200 flex gap-2 justify-center items-center">
+        <CalendarDaysIcon class="size-6" />
+        <h1>{{ currentDate }}, {{ currentTime }}</h1>
+      </div>
     </template>
 
     <template v-slot:cuerpo>
@@ -45,7 +47,7 @@
         />
       </div>
     </template>
-  </caja-layout>
+  </default-layout>
 </template>
 
 <script setup>
@@ -53,7 +55,7 @@ import { onMounted, ref, onUnmounted } from "vue";
 import Swal from "sweetalert2";
 import { CalendarDaysIcon } from "@heroicons/vue/24/outline";
 
-import cajaLayout from "./layout/cajaLayout.vue";
+import defaultLayout from "../../components/layouts/defaultLayout.vue";
 import gestionarCaja from "./sections/gestionarCaja.vue";
 import cajaServices from "../../services/cajaServices";
 import cajasTable from "./components/cajasTable.vue";

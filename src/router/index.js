@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { estaAutenticado } from "../utils/utilsAuth";
+import { esAdministrador, estaAutenticado } from "../utils/utilsAuth";
 
 const routes = [
   {
@@ -8,6 +8,7 @@ const routes = [
     component: () => import("../views/introduccion/index.vue"),
     meta: {
       requireAuth: false,
+      requiereAdmin: false,
     },
   },
   {
@@ -16,6 +17,7 @@ const routes = [
     component: () => import("../views/auth/login.vue"),
     meta: {
       requireAuth: false,
+      requiereAdmin: false,
     },
   },
   {
@@ -24,6 +26,16 @@ const routes = [
     component: () => import("../views/caja/index.vue"),
     meta: {
       requireAuth: false,
+      requiereAdmin: false,
+    },
+  },
+  {
+    path: "/config",
+    name: "configuracion",
+    component: () => import("../views/configuracion/index.vue"),
+    meta: {
+      requireAuth: true,
+      requiereAdmin: true,
     },
   },
   {
@@ -39,6 +51,12 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   if (to.meta.requireAuth && !estaAutenticado()) {
+    next({ name: "login" });
+  } else {
+    next();
+  }
+
+  if (to.meta.requiereAdmin && !esAdministrador()) {
     next({ name: "login" });
   } else {
     next();

@@ -5,18 +5,8 @@
   >
     <Menubar :model="items">
       <template #item="{ item, props, hasSubmenu }">
-        <router-link
-          v-if="item.route"
-          v-slot="{ href, navigate }"
-          :to="item.route"
-          custom
-        >
-          <a v-ripple :href="href" v-bind="props.action" @click="navigate">
-            <span>{{ item.label }}</span>
-          </a>
-        </router-link>
         <a
-          v-else
+          v-if="!item.requireAuth || estaLogueado"
           v-ripple
           :href="item.url"
           :target="item.target"
@@ -24,34 +14,71 @@
         >
           <home-icon v-if="item.id == 1" class="size-5" />
           <calculator-icon v-if="item.id == 2" class="size-5" />
-
+          <cog-6-tooth-icon v-if="item.id == 3" class="size-5" />
           <span>{{ item.label }}</span>
           <span v-if="hasSubmenu" class="pi pi-fw pi-angle-down" />
         </a>
       </template>
 
       <template #end>
-        <div class="flex items-center gap-2">
+        <router-link
+          :to="estaLogueado ? '#' : '/auth/login'"
+          @click="
+            (event) => {
+              if (estaLogueado) {
+                event.preventDefault();
+                toggle(event);
+              }
+            }
+          "
+        >
           <Avatar
-            label="V"
+            :label="primerLetra"
             class="mr-2"
             size="large"
             style="background-color: #faa8d2; color: #2a1261"
             shape="circle"
           />
-        </div>
+          <Popover ref="op" v-if="estaLogueado">
+            <div class="flex flex-col gap-4">
+              <div>
+                <ul class="list-none p-0 m-0 flex flex-col">
+                  <li
+                    class="flex items-center gap-2 px-2 py-3 hover:bg-emphasis cursor-pointer rounded-border"
+                    @click="cerrarSeccion(member)"
+                  >
+                    <div>
+                      <span class="font-medium">Cerrar session</span>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </Popover>
+        </router-link>
       </template>
     </Menubar>
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
-import { HomeIcon, CalculatorIcon } from "@heroicons/vue/24/outline";
+import {
+  HomeIcon,
+  CalculatorIcon,
+  Cog6ToothIcon,
+} from "@heroicons/vue/24/outline";
+
+import { estaAutenticado } from "../utils/utilsAuth";
+import { useAuthStore } from "../store/auth";
+import routerPage from "../router/index";
 
 const router = useRouter();
+const store = useAuthStore();
 
+const op = ref();
+const nombre = ref("");
 const items = ref([
   {
     id: 1,
@@ -67,5 +94,32 @@ const items = ref([
       router.push("/caja");
     },
   },
+  {
+    id: 3,
+    label: "Configuracion",
+    command: () => {
+      router.push("/config");
+    },
+    requireAuth: true,
+  },
 ]);
+
+const estaLogueado = computed(() => {
+  return estaAutenticado();
+});
+
+const primerLetra = computed(() => {
+  return store.nombre ? store.nombre.charAt(0).toUpperCase() : "?";
+});
+
+const cerrarSeccion = () => {
+  store.cerrarSeccion();
+  routerPage.push("/");
+};
+
+const toggle = (event) => {
+  if (estaAutenticado) {
+    op.value.toggle(event);
+  }
+};
 </script>
