@@ -31,9 +31,26 @@
           </div>
         </div>
 
-        <div class="flex justify-between">
-          <h2>Total facturado</h2>
+        <div
+          class="flex justify-between bg-green-200 py-1 rounded-lg shadow-lg px-2 font-bold"
+        >
+          <h2>Total venta facturada</h2>
           <h2 class="font-bold">{{ formatCurrency(totalFacturado) }}</h2>
+        </div>
+
+        <div class="border-b border-t border-black py-2">
+          <h2 class="font-bold">Detalle de venta - Cafeteria</h2>
+          <div class="flex justify-between">
+            <h2>Total items cafeteria</h2>
+            <h2 class="font-bold">{{ cafeteriaData.totalItemsConsumibles }}</h2>
+          </div>
+
+          <div class="flex justify-between">
+            <h2>Total venta para cafeteria</h2>
+            <h2 class="font-bold">
+              {{ formatCurrency(cafeteriaData.totalVentaItemsConsumibles) }}
+            </h2>
+          </div>
         </div>
       </div>
     </template>
@@ -64,6 +81,7 @@ import modalMesaLayout from "../layout/modalMesaLayout.vue";
 
 const modalLayoutRef = ref();
 const agrupadosPorTipoPago = ref({});
+const cafeteriaData = ref({});
 
 const props = defineProps({
   totalMesas: {
@@ -94,6 +112,26 @@ const abrirModal = (data) => {
     });
     return acc;
   }, {});
+
+  let totalItemsConsumibles = 0;
+  let totalVentaItemsConsumibles = 0;
+
+  for (const mesa of data) {
+    if (mesa.mesaItems.length > 0 && !mesa.estaAbierto) {
+      for (const item of mesa.mesaItems) {
+        if (item.item.tipoItemId == 2) {
+          const valorVentaPorItemConsumible =
+            item.cantidad * parseFloat(item.item.contabilidadItem.valorVenta);
+
+          totalItemsConsumibles += item.cantidad;
+          totalVentaItemsConsumibles += valorVentaPorItemConsumible;
+        }
+      }
+    }
+  }
+
+  cafeteriaData.value.totalItemsConsumibles = totalItemsConsumibles;
+  cafeteriaData.value.totalVentaItemsConsumibles = totalVentaItemsConsumibles;
 };
 
 const calcularTotalPorTipoPago = (pagos) => {

@@ -14,6 +14,7 @@
     @clean-filter="cleanFilter"
     @abrir-mesa-dividida="obtenerDataMesa"
     @cerrar-mesa="cerrarMesa"
+    @imprimir-mesa="imprimirFactura"
   />
 
   <abrir-mesa-modal

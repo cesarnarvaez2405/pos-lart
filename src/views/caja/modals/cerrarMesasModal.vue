@@ -143,6 +143,15 @@
       />
 
       <Button
+        label="Imprimir mesa"
+        class="bg-blue-200 text-blue-900 border-blue-300 shadow-lg font-poppins"
+        autofocus
+        :disabled="totalCarrito !== valorTotalACerrar"
+        v-if="!quiereDividir && !estaViendoDetalle"
+        @click="imprimirMesa()"
+      />
+
+      <Button
         label="Cerrar Mesa"
         class="bg-orange-200 text-orange-900 border-orange-300 shadow-lg font-poppins"
         autofocus
@@ -251,6 +260,7 @@ const emit = defineEmits([
   "clean-filter",
   "abrir-mesa-dividida",
   "cerrar-mesa",
+  "imprimir-mesa",
 ]);
 
 const valorTotalACerrar = computed(() => {
@@ -326,6 +336,10 @@ const cerrarMesa = () => {
     tipoPagoValues,
     idMesa: props.idMesa,
   });
+};
+
+const imprimirMesa = () => {
+  emit("imprimir-mesa");
 };
 
 const dividirMesa = async () => {
