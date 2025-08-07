@@ -1,4 +1,3 @@
-
 <template>
   <div
     class="card font-poppins font-semibold shadow-md border-b border-pink-300"
@@ -86,6 +85,7 @@ const items = ref([
     command: () => {
       router.push("/");
     },
+    key: "100",
   },
   {
     id: 2,
@@ -93,6 +93,7 @@ const items = ref([
     command: () => {
       router.push("/caja");
     },
+    key: "101",
   },
   {
     id: 3,
@@ -101,6 +102,7 @@ const items = ref([
       router.push("/config");
     },
     requireAuth: true,
+    key: "102",
   },
 ]);
 

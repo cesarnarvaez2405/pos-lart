@@ -1,24 +1,8 @@
 <template>
-  <Menu :model="modulos" class="w-full md:w-60" />
-  <!-- <template #submenulabel="{ item }">
-      <span class="text-primary font-bold">{{ item.label }}</span>
-    </template>
-    <template #item="{ item, props }">
-      <a v-ripple class="flex items-center" v-bind="props.action">
-        <span :class="item.icon" />
-        <span>{{ item.label }}</span>
-        <Badge v-if="item.badge" class="ml-auto" :value="item.badge" />
-        <span
-          v-if="item.shortcut"
-          class="ml-auto border border-surface rounded bg-emphasis text-muted-color text-xs p-1"
-          >{{ item.shortcut }}</span
-        >
-      </a>
-    </template> -->
-  <!-- </Menu> -->
+  <TieredMenu :model="modulos" />
 </template>
-  
-  <script setup>
+
+<script setup>
 import { ref } from "vue";
 
 const modulos = ref([
@@ -29,21 +13,23 @@ const modulos = ref([
         label: "Usuarios",
         icon: "pi pi-users",
         shortcut: "⌘+U",
+        key: "200",
       },
       {
         label: "Roles",
         icon: "pi pi-lock",
         shortcut: "⌘+R",
+        key: "201",
       },
       {
         label: "Permisos",
         icon: "pi pi-key",
         shortcut: "⌘+P",
+        key: "202",
       },
     ],
   },
 ]);
 </script>
-  
-  <style>
-</style>
+
+<style></style>
